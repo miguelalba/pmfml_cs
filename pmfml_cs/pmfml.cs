@@ -64,21 +64,4 @@ namespace pmfml_cs
         MANUAL_TERTIARY_MODEL  // Tertiary models generated manually
 
     }
-
-    public interface LiteratureSpecificationI
-    {
-        string getAuthor();
-        string getYear();
-        string getTitle();
-        string getAbstract();
-        string getJournal();
-        string getVolume();
-        string getIssue();
-        string getPage();
-        string getApproval();
-        string getWebsite();
-        string getType();
-        string getComment();
-    }
-
 }

@@ -137,11 +137,11 @@ namespace pmfml_cs.numl
         public static string URI = "http://www.ebi.ac.uk/sbo/";
 
         public PMFUnitDefinition unitDefinition { get; }
-        public PMFCompartment compartment { get; }
-        public PMFSpecies species { get; }
+        public PmfCompartment compartment { get; }
+        public PmfSpecies species { get; }
 
         public ConcentrationOntology(PMFUnitDefinition unitDefinition,
-            PMFCompartment compartment, PMFSpecies species)
+            PmfCompartment compartment, PmfSpecies species)
         {
             this.unitDefinition = unitDefinition;
             this.compartment = compartment;
@@ -153,7 +153,7 @@ namespace pmfml_cs.numl
             XmlNode annotationNode = node.SelectSingleNode(NuMLTags.ANNOTATION);
 
             // retrieves unitDefinition
-            XmlElement unitNode = (XmlElement) annotationNode.SelectSingleNode(NuMLTags.UNIT_DEFINITION);
+            XmlElement unitNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.UNIT_DEFINITION);
             UnitDefinitionNuMLNode unitNuMLNode = new UnitDefinitionNuMLNode(unitNode);
             unitDefinition = unitNuMLNode.ToPMFUnitDefinition();
 
@@ -163,7 +163,7 @@ namespace pmfml_cs.numl
             compartment = compartmentNuMLNode.ToPMFCompartment();
 
             // retrieves species
-            XmlElement speciesNode = (XmlElement) annotationNode.SelectSingleNode(NuMLTags.SPECIES);
+            XmlElement speciesNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.SPECIES);
             SpeciesNuMLNode speciesNuMLNode = new SpeciesNuMLNode(speciesNode);
             species = speciesNuMLNode.toPMFSpecies();
         }
@@ -203,14 +203,15 @@ namespace pmfml_cs.numl
 
         public XmlElement element { get; }
 
-        public CompartmentNuMLNode(PMFCompartment compartment, XmlDocument doc)
+        public CompartmentNuMLNode(PmfCompartment compartment, XmlDocument doc)
         {
             element = doc.CreateElement(NuMLTags.COMPARTMENT);
             element.SetAttribute(NuMLTags.ID_ATTR, compartment.getId());
             element.SetAttribute(NuMLTags.NAME_ATTR, compartment.getName());
 
-            if (compartment.isSetPmfCode() || compartment.isSetDetail()
-                || compartment.isSetModelVariables())
+            if (!string.IsNullOrEmpty(compartment.pmfCode) ||
+                !string.IsNullOrEmpty(compartment.detail) ||
+                compartment.modelVariables != null)
             {
                 XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
                 element.AppendChild(annotation);
@@ -218,23 +219,23 @@ namespace pmfml_cs.numl
                 XmlElement metadata = doc.CreateElement(NuMLTags.METADATA);
                 annotation.AppendChild(metadata);
 
-                if (compartment.isSetPmfCode())
+                if (!string.IsNullOrEmpty(compartment.pmfCode))
                 {
                     XmlElement pmfCodeNode = doc.CreateElement(SOURCE_TAG);
-                    pmfCodeNode.InnerText = compartment.getPmfCode();
+                    pmfCodeNode.InnerText = compartment.pmfCode;
                     metadata.AppendChild(pmfCodeNode);
                 }
 
-                if (compartment.isSetDetail())
+                if (!string.IsNullOrEmpty(compartment.detail))
                 {
                     XmlElement detailNode = doc.CreateElement(DETAIL_TAG);
-                    detailNode.InnerText = compartment.getDetail();
+                    detailNode.InnerText = compartment.detail;
                     metadata.AppendChild(detailNode);
                 }
 
-                if (compartment.isSetModelVariables())
+                if (compartment.modelVariables != null)
                 {
-                    foreach (ModelVariable modelVariable in compartment.getModelVariables())
+                    foreach (ModelVariable modelVariable in compartment.modelVariables)
                     {
                         XmlElement modelVariableNode = doc.CreateElement(VARIABLE_TAG);
                         modelVariableNode.SetAttribute("name", modelVariable.name);
@@ -254,7 +255,7 @@ namespace pmfml_cs.numl
         }
 
 
-        public PMFCompartment ToPMFCompartment()
+        public PmfCompartment ToPMFCompartment()
         {
             string id = element.Attributes[NuMLTags.ID_ATTR].Value;
             string name = element.Attributes[NuMLTags.NAME_ATTR].Value;
@@ -307,17 +308,19 @@ namespace pmfml_cs.numl
 
         public XmlElement element;
 
-        public SpeciesNuMLNode(PMFSpecies species, XmlDocument doc)
+        public SpeciesNuMLNode(PmfSpecies species, XmlDocument doc)
         {
             element = doc.CreateElement(NuMLTags.SPECIES);
-            element.SetAttribute(NuMLTags.BOUNDARY_CONDITION_ATTR, PMFSpeciesImpl.BOUNDARY_CONDITION.ToString());
-            element.SetAttribute(NuMLTags.HAS_ONLY_SUBSTANCE_ATTR, PMFSpeciesImpl.ONLY_SUBSTANCE_UNITS.ToString());
+            element.SetAttribute(NuMLTags.BOUNDARY_CONDITION_ATTR, PmfSpecies.BOUNDARY_CONDITION.ToString());
+            element.SetAttribute(NuMLTags.HAS_ONLY_SUBSTANCE_ATTR, PmfSpecies.ONLY_SUBSTANCE_UNITS.ToString());
             element.SetAttribute(NuMLTags.COMPARTMENT_ATTR, species.getCompartment());
             element.SetAttribute(NuMLTags.ID_ATTR, species.getId());
             element.SetAttribute(NuMLTags.NAME_ATTR, species.getName());
             element.SetAttribute(NuMLTags.SUBSTANCE_UNITS_ATTR, species.getUnits());
 
-            if (species.isSetCombaseCode() || species.isSetDetail() || species.isSetDescription())
+            if (!string.IsNullOrEmpty(species.combaseCode) ||
+                !string.IsNullOrEmpty(species.detail) ||
+                !string.IsNullOrEmpty(species.description))
             {
                 XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
                 element.AppendChild(annotation);
@@ -325,24 +328,24 @@ namespace pmfml_cs.numl
                 XmlElement metadata = doc.CreateElement(NuMLTags.METADATA);
                 annotation.AppendChild(metadata);
 
-                if (species.isSetCombaseCode())
+                if (!string.IsNullOrEmpty(species.combaseCode))
                 {
                     XmlElement combaseCodeNode = doc.CreateElement(SOURCE_TAG);
-                    combaseCodeNode.InnerText = species.getCombaseCode();
+                    combaseCodeNode.InnerText = species.combaseCode;
                     metadata.AppendChild(combaseCodeNode);
                 }
 
-                if (species.isSetDetail())
+                if (!string.IsNullOrEmpty(species.detail))
                 {
                     XmlElement detailNode = doc.CreateElement(DETAIL_TAG);
-                    detailNode.InnerText = species.getDetail();
+                    detailNode.InnerText = species.detail;
                     metadata.AppendChild(detailNode);
                 }
 
-                if (species.isSetDescription())
+                if (!string.IsNullOrEmpty(species.description))
                 {
                     XmlElement descriptionNode = doc.CreateElement(DESCRIPTION_TAG);
-                    descriptionNode.InnerText = species.getDescription();
+                    descriptionNode.InnerText = species.description;
                     metadata.AppendChild(descriptionNode);
                 }
             }
@@ -353,13 +356,13 @@ namespace pmfml_cs.numl
             this.element = element;
         }
 
-        public PMFSpecies toPMFSpecies()
+        public PmfSpecies toPMFSpecies()
         {
             string id = element.GetAttribute(NuMLTags.ID_ATTR);
             string name = element.GetAttribute(NuMLTags.NAME_ATTR);
             string compartment = element.GetAttribute(NuMLTags.COMPARTMENT_ATTR);
             string substanceUnits = element.GetAttribute(NuMLTags.SUBSTANCE_UNITS_ATTR);
-            PMFSpecies species = SBMLFactory.createPMFSpecies(compartment, id, name, substanceUnits);
+            PmfSpecies species = SBMLFactory.createPMFSpecies(compartment, id, name, substanceUnits);
 
             XmlElement annotationNode = (XmlElement)element.SelectSingleNode(NuMLTags.ANNOTATION);
             if (annotationNode != null)
@@ -371,21 +374,21 @@ namespace pmfml_cs.numl
                 XmlElement combaseCodeNode = (XmlElement)metadataNode.SelectSingleNode(SOURCE_TAG);
                 if (combaseCodeNode != null)
                 {
-                    species.setCombaseCode(combaseCodeNode.InnerText);
+                    species.combaseCode = combaseCodeNode.InnerText;
                 }
 
                 // detail 
                 XmlElement detailNode = (XmlElement)metadataNode.SelectSingleNode(DETAIL_TAG);
                 if (detailNode != null)
                 {
-                    species.setDetail(detailNode.InnerText);
+                    species.detail = detailNode.InnerText;
                 }
 
                 // description
                 XmlElement descriptionNode = (XmlElement)metadataNode.SelectSingleNode(DESCRIPTION_TAG);
                 if (descriptionNode != null)
                 {
-                    species.setDescription(descriptionNode.InnerText);
+                    species.description = descriptionNode.InnerText;
                 }
             }
 

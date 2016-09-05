@@ -22,16 +22,71 @@ using libsbmlcs;
 
 namespace pmfml_cs.sbml
 {
+    static class SbmlTags
+    {
+        // namespaces
+        public static string PMMLAB_NS = "pmmlab";
+        public static string PMF_NS = "pmf";
+        public static string DC_NS = "dc";
+        public static string DCTERMS_NS = "dcterms";
+
+        // pmmlab tags
+        public static string COND_ID = "condID";
+        public static string DATA_SOURCE = "dataSource";
+        public static string GLOBAL_MODEL_ID = "globalModelID";
+        public static string FORMULA_NAME = "formulaName";
+        public static string SUBJECT = "subject";
+        public static string PMMLAB_ID = "pmmlabId";
+        public static string P = "P";
+        public static string ERROR = "error";
+        public static string T = "t";
+        public static string CORRELATION = "correlation";
+        public static string DESCRIPTION = "description";
+        public static string IS_START = "isStart";
+        public static string DETAIL = "detail";
+        public static string ENVIRONMENT = "environment";
+        public static string TRANSFORMATION = "transformation";
+        public static string PRIMARY_MODEL = "primaryModel";
+
+        // pmf tags
+        public static string METADATA = "metadata";
+
+        // dc tags
+        public static string CREATOR = "creator";
+        public static string TYPE = "type";
+        public static string RIGHTS = "rights";
+        public static string SOURCE = "source";
+
+        // dcterms tags
+        public static string CREATED = "created";
+        public static string MODIFIED = "modified";
+
+        // correlation attributes
+        public static string ORIGNAME_ATTR = "origname";
+        public static string VALUE_ATTR = "value";
+
+        // reference attributes using RIS specification
+        public static string RIS_AUTHOR = "AU";
+        public static string RIS_YEAR = "PY";
+        public static string RIS_TITLE = "TI";
+        public static string RIS_ABSTRACT = "AB";
+        public static string RIS_JOURNAL = "T2";
+        public static string RIS_VOLUME = "VL";
+        public static string RIS_ISSUE = "IS";
+        public static string RIS_PAGE = "SP";
+        public static string RIS_APPROVAL = "LB";
+        public static string RIS_WEBSITE = "UR";
+        public static string RIS_TYPE = "M3";
+        public static string RIS_COMMENT = "N1";
+    }
+
     public class CondIdNode
     {
-        public const string NS = "pmmlab";
-        public const string TAG = "condID";
-
-        XMLNode node;
+        public XMLNode node { get; }
 
         public CondIdNode(int id)
         {
-            node = new XMLNode(new XMLTriple(TAG, null, NS));
+            node = new XMLNode(new XMLTriple(SbmlTags.COND_ID, null, SbmlTags.PMMLAB_NS));
             node.addChild(new XMLNode(id.ToString()));
         }
 
@@ -44,14 +99,12 @@ namespace pmfml_cs.sbml
         {
             return int.Parse(node.getChild(0).getCharacters());
         }
-
-        public XMLNode getNode() { return node; }
     }
 
     public class Correlation
     {
-        private string name;
-        private double value;  // worths NaN when not set
+        public string name { get; }
+        public double value { get; }  // worths NaN when not set
 
         public Correlation(string name)
         {
@@ -65,14 +118,6 @@ namespace pmfml_cs.sbml
             this.value = value;
         }
 
-        public string getName() { return name; }
-        public double getValue() { return value; }
-
-        public bool isSetValue()
-        {
-            return !double.IsNaN(value);
-        }
-
         public override string ToString()
         {
             return "Correlation [name=" + name + ", value=" + value + "]";
@@ -83,10 +128,7 @@ namespace pmfml_cs.sbml
 
     class DataSourceNode
     {
-        public const string TAG = "dataSource";
-        public const string NS = "pmmlab";
-
-        XMLNode node;
+        public XMLNode node { get; }
 
         public DataSourceNode(XMLNode node)
         {
@@ -95,7 +137,7 @@ namespace pmfml_cs.sbml
 
         public DataSourceNode(string dataName)
         {
-            XMLTriple triple = new XMLTriple(TAG, null, NS);
+            XMLTriple triple = new XMLTriple(SbmlTags.DATA_SOURCE, null, SbmlTags.PMMLAB_NS);
 
             XMLAttributes attrs = new XMLAttributes();
             attrs.add("id", "source1");
@@ -108,24 +150,15 @@ namespace pmfml_cs.sbml
         {
             return node.getAttrValue("href");
         }
-
-        public XMLNode getNode()
-        {
-            return node;
-        }
     }
 
     class GlobalModelIdNode
     {
-        public const string NS = "pmmlab";
-        public const string TAG = "globalModelID";
-
-        // TODO: continue
-        XMLNode node;
+        public XMLNode node { get; }
 
         public GlobalModelIdNode(int id)
         {
-            node = new XMLNode(new XMLTriple(TAG, null, NS));
+            node = new XMLNode(new XMLTriple(SbmlTags.GLOBAL_MODEL_ID, null, SbmlTags.PMMLAB_NS));
             node.addChild(new XMLNode(id.ToString()));
         }
 
@@ -138,19 +171,14 @@ namespace pmfml_cs.sbml
         {
             return int.Parse(node.getChild(0).getCharacters());
         }
-
-        public XMLNode getNode()
-        {
-            return node;
-        }
     }
 
     /// <summary>Limit values of a parameter.</summary>
     class Limits
     {
-        private string var;
-        private double min;
-        private double max;
+        public string var { get; }
+        public double min { get; }
+        public double max { get; }
 
         /// <summary>Creates new Limits of a variable.</summary>
         /// <param name="var">Variable name</param>
@@ -162,17 +190,13 @@ namespace pmfml_cs.sbml
             this.min = min;
             this.max = max;
         }
-
-        public string getVar() { return var; }
-        public double getMin() { return min; }
-        public double getMax() { return max; }
     }
 
     class LimitsConstraint
     {
         const int LEVEL = 3;
         const int VERSION = 1;
-        Constraint constraint;
+        public Constraint constraint { get; }
 
         /// <summary>
         /// Initializes constraint. var cannot be null. Either min or can be NaN
@@ -215,11 +239,6 @@ namespace pmfml_cs.sbml
         public LimitsConstraint(Constraint constraint)
         {
             this.constraint = constraint;
-        }
-
-        public Constraint getConstraint()
-        {
-            return constraint;
         }
 
         public Limits getLimits()
@@ -274,304 +293,85 @@ namespace pmfml_cs.sbml
     }
 
     /// <summary>Holds meta data related to a model.</summary>
-    public interface Metadata
+    public class Metadata
     {
-        string getGivenName();
-        void setGivenName(string name);
-        bool isSetGivenName();
-
-        string getFamilyName();
-        void setFamilyName(string name);
-        bool isSetFamilyName();
-
-        string getContact();
-        void setContact(string contact);
-        bool isSetContact();
-
-        string getCreatedDate();
-        void setCreatedDate(string date);
-        bool isSetCreatedDate();
-
-        string getModifiedDate();
-        void setModifiedDate(string date);
-        bool isSetModifiedDate();
-
-        ModelType getType();
-        void setType(ModelType type);
-        bool isSetType();
-
-        string getRights();
-        void setRights(string rights);
-        bool isSetRights();
-
-        string getReferenceLink();
-        void setReferenceLink(string link);
-        bool isSetReferenceLink();
-    }
-
-    class MetadataImpl : Metadata
-    {
-        private const string GIVEN_NAME = "givenName";
-        private const string FAMILY_NAME = "familyName";
-        private const string CONTACT = "contact";
-        private const string CREATED_DATE = "createdDate";
-        private const string MODIFIED_DATE = "modifiedDate";
-        private const string TYPE = "type";
-        private const string RIGHTS = "rights";
-        private const string REFERENCE_LINK = "referenceLink";
-
-        private Hashtable ht;
-
-        public MetadataImpl()
-        {
-            ht = new Hashtable(8);
-        }
-
-        public MetadataImpl(string givenName, string familyName, string contact,
-            string createdDate, string modifiedDate, ModelType type,
-            string rights, string referenceLink)
-        {
-            ht = new Hashtable(8);
-
-            setGivenName(givenName);
-            setFamilyName(familyName);
-            setContact(contact);
-            setCreatedDate(createdDate);
-            setModifiedDate(modifiedDate);
-            setType(type);
-            setRights(rights);
-            setReferenceLink(referenceLink);
-        }
-
-        // --- given name ---
-        public string getGivenName()
-        {
-            return (string)ht[GIVEN_NAME];
-        }
-
-        public void setGivenName(string givenName)
-        {
-            if (!string.IsNullOrEmpty(givenName))
-            {
-                ht[GIVEN_NAME] = givenName;
-            }
-        }
-
-        public bool isSetGivenName()
-        {
-            return ht.ContainsKey(GIVEN_NAME);
-        }
-
-        // --- family name ---
-        public string getFamilyName()
-        {
-            return (string)ht[FAMILY_NAME];
-        }
-
-        public void setFamilyName(string familyName)
-        {
-            if (!string.IsNullOrEmpty(familyName))
-            {
-                ht[FAMILY_NAME] = familyName;
-            }
-        }
-
-        public bool isSetFamilyName()
-        {
-            return ht.ContainsKey(FAMILY_NAME);
-        }
-
-        // --- contact ---
-        public string getContact()
-        {
-            return (string)ht[CONTACT];
-        }
-
-        public void setContact(string contact)
-        {
-            if (!string.IsNullOrEmpty(contact))
-            {
-                ht[CONTACT] = contact;
-            }
-        }
-
-        public bool isSetContact()
-        {
-            return ht.ContainsKey(CONTACT);
-        }
-
-        // --- created date ---
-        public string getCreatedDate()
-        {
-            return (string)ht[CREATED_DATE];
-        }
-
-        public void setCreatedDate(string date)
-        {
-            if (!string.IsNullOrEmpty(date))
-            {
-                ht[CREATED_DATE] = date;
-            }
-        }
-
-        public bool isSetCreatedDate()
-        {
-            return ht.ContainsKey(CREATED_DATE);
-        }
-
-        // --- modified date ---
-        public string getModifiedDate()
-        {
-            return (string)ht[MODIFIED_DATE];
-        }
-
-        public void setModifiedDate(string date)
-        {
-            if (!string.IsNullOrEmpty(date))
-            {
-                ht[MODIFIED_DATE] = date;
-            }
-        }
-
-        public bool isSetModifiedDate()
-        {
-            return ht.ContainsKey(MODIFIED_DATE);
-        }
-
-        // --- type ---
-        public ModelType getType()
-        {
-            return (ModelType)ht[TYPE];
-        }
-
-        public void setType(ModelType type)
-        {
-            ht[TYPE] = type;
-        }
-
-        public bool isSetType()
-        {
-            return ht.ContainsKey(TYPE);
-        }
-
-        // --- rights ---
-        public string getRights()
-        {
-            return (string)ht[RIGHTS];
-        }
-
-        public void setRights(string rights)
-        {
-            ht[RIGHTS] = rights;
-        }
-
-        public bool isSetRights()
-        {
-            return ht.ContainsKey(RIGHTS);
-        }
-
-        // --- reference link ---
-        public string getReferenceLink()
-        {
-            return (string)ht[REFERENCE_LINK];
-        }
-
-        public void setReferenceLink(String link)
-        {
-            if (!string.IsNullOrEmpty(link))
-            {
-                ht[REFERENCE_LINK] = link;
-            }
-        }
-
-        public bool isSetReferenceLink()
-        {
-            return ht.ContainsKey(REFERENCE_LINK);
-        }
+        public string givenName { get; set; }
+        public string familyName { get; set; }
+        public string contact { get; set; }
+        public string createdDate { get; set; }
+        public string modifiedDate { get; set; }
+        public ModelType? type { get; set; }
+        public string rights { get; set; }
+        public string referenceLink { get; set; }
     }
 
     class MetadataAnnotation
     {
-
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
-
-        private const string CREATOR_NS = "dc";
-        private const string CREATOR_TAG = "creator";
-
-        private const string CREATED_NS = "dcterms";
-        private const string CREATED_TAG = "created";
-
-        private const string MODIFIED_NS = "dcterms";
-        private const string MODIFIED_TAG = "modified";
-
-        private const string TYPE_NS = "dc";
-        private const string TYPE_TAG = "type";
-
-        private const string RIGHTS_NS = "dc";
-        private const string RIGHTS_TAG = "rights";
-
-        private const string REFERENCE_NS = "dc";
-        private const string REFERENCE_TAG = "source";
-
-        Metadata metadata;
-        XMLNode annotation;
+        public Metadata metadata { get; }
+        public XMLNode annotation { get; }
 
         public MetadataAnnotation(Metadata metadata)
         {
-            XMLTriple pmfTriple = new XMLTriple(METADATA_TAG, "", METADATA_NS);
+            XMLTriple pmfTriple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS);
             annotation = new XMLNode(pmfTriple);
 
             // Builds creator node
-            if (metadata.isSetGivenName() || metadata.isSetFamilyName() || metadata.isSetContact())
+            if (!string.IsNullOrEmpty(metadata.givenName) ||
+                !string.IsNullOrEmpty(metadata.familyName) ||
+                !string.IsNullOrEmpty(metadata.contact))
             {
-                string givenName = metadata.isSetGivenName() ? metadata.getGivenName() : "";
-                string familyName = metadata.isSetFamilyName() ? metadata.getFamilyName() : "";
-                string contact = metadata.isSetContact() ? metadata.getContact() : "";
+                string givenName = string.IsNullOrEmpty(metadata.givenName) ? "" : metadata.givenName;
+                string familyName = string.IsNullOrEmpty(metadata.familyName) ? "" : metadata.familyName;
+                string contact = string.IsNullOrEmpty(metadata.contact) ? "" : metadata.contact;
 
                 string creator = givenName = "." + familyName + "." + contact;
-                XMLNode node = new XMLNode(new XMLTriple(CREATOR_TAG, null, CREATOR_NS));
+                XMLNode node = new XMLNode(new XMLTriple(SbmlTags.CREATOR, null, SbmlTags.DC_NS));
                 node.addChild(new XMLNode(creator));
                 annotation.addChild(node);
             }
 
             // Builds created date node
-            if (metadata.isSetCreatedDate())
+            if (!string.IsNullOrEmpty(metadata.createdDate))
             {
-                XMLNode node = new XMLNode(new XMLTriple(CREATED_TAG, "", CREATED_NS));
-                node.addChild(new XMLNode(metadata.getCreatedDate()));
+                XMLTriple triple = new XMLTriple(SbmlTags.CREATED, "", SbmlTags.DC_NS);
+                XMLNode node = new XMLNode(triple);
+                node.addChild(new XMLNode(metadata.createdDate));
                 annotation.addChild(node);
             }
 
             // Builds modified date node
-            if (metadata.isSetModifiedDate())
+            if (!string.IsNullOrEmpty(metadata.modifiedDate))
             {
-                XMLNode node = new XMLNode(new XMLTriple(MODIFIED_TAG, "", MODIFIED_NS));
-                node.addChild(new XMLNode(metadata.getModifiedDate()));
+                XMLTriple triple = new XMLTriple(SbmlTags.MODIFIED, "", SbmlTags.DCTERMS_NS);
+                XMLNode node = new XMLNode(triple);
+                node.addChild(new XMLNode(metadata.modifiedDate));
                 annotation.addChild(node);
             }
 
             // Builds type node
-            if (metadata.isSetType())
+            if (metadata.type.HasValue)
             {
-                XMLNode node = new XMLNode(new XMLTriple(TYPE_TAG, "", TYPE_NS));
-                node.addChild(new XMLNode(metadata.getType().ToString()));
+                XMLTriple triple = new XMLTriple(SbmlTags.TYPE, "", SbmlTags.DC_NS);
+                XMLNode node = new XMLNode(triple);
+                node.addChild(new XMLNode(metadata.type.ToString()));
                 annotation.addChild(node);
             }
 
             // Builds rights node
-            if (metadata.isSetRights())
+            if (!string.IsNullOrEmpty(metadata.rights))
             {
-                XMLNode node = new XMLNode(new XMLTriple(RIGHTS_TAG, "", RIGHTS_NS));
-                node.addChild(new XMLNode(metadata.getRights()));
+                XMLTriple triple = new XMLTriple(SbmlTags.RIGHTS, "", SbmlTags.DC_NS);
+                XMLNode node = new XMLNode(triple);
+                node.addChild(new XMLNode(metadata.rights));
                 annotation.addChild(node);
             }
 
             // Builds reference node
-            if (metadata.isSetReferenceLink())
+            if (!string.IsNullOrEmpty(metadata.referenceLink))
             {
-                XMLNode node = new XMLNode(new XMLTriple(REFERENCE_TAG, "", REFERENCE_NS));
-                node.addChild(new XMLNode(metadata.getReferenceLink()));
+                XMLTriple triple = new XMLTriple(SbmlTags.SOURCE, "", SbmlTags.DC_NS);
+                XMLNode node = new XMLNode(triple);
+                node.addChild(new XMLNode(metadata.referenceLink));
                 annotation.addChild(node);
             }
 
@@ -583,42 +383,41 @@ namespace pmfml_cs.sbml
         {
             annotation = node;
 
-            if (node.hasChild(CREATOR_TAG))
+            if (node.hasChild(SbmlTags.CREATOR))
             {
-                XMLNode creatorNode = node.getChild(CREATOR_TAG);
+                XMLNode creatorNode = node.getChild(SbmlTags.CREATOR);
                 string chars = creatorNode.getChild(0).getCharacters();
                 string[] tempStrings = chars.Split('.');
 
                 if (!string.IsNullOrEmpty(tempStrings[0]))
                 {
-                    metadata.setGivenName(tempStrings[0]);
+                    metadata.givenName = tempStrings[0];
                 }
                 if (!string.IsNullOrEmpty(tempStrings[1]))
                 {
-                    metadata.setFamilyName(tempStrings[1]);
+                    metadata.familyName = tempStrings[1];
                 }
                 if (!string.IsNullOrEmpty(tempStrings[2]))
                 {
-                    metadata.setContact(tempStrings[2]);
+                    metadata.contact = tempStrings[2];
                 }
             }
 
-            if (node.hasChild(CREATED_TAG))
+            if (node.hasChild(SbmlTags.CREATED))
             {
-                XMLNode createdNode = node.getChild(CREATED_TAG);
-                metadata.setCreatedDate(createdNode.getChild(0).getCharacters());
+                XMLNode createdNode = node.getChild(SbmlTags.CREATED);
+                metadata.createdDate = createdNode.getChild(0).getCharacters();
             }
 
-            if (node.hasChild(MODIFIED_TAG))
+            if (node.hasChild(SbmlTags.MODIFIED))
             {
-                XMLNode modifiedNode = node.getChild(MODIFIED_TAG);
-                metadata.setModifiedDate(modifiedNode.getChild(0).getCharacters());
+                XMLNode modifiedNode = node.getChild(SbmlTags.MODIFIED);
+                metadata.modifiedDate = modifiedNode.getChild(0).getCharacters();
             }
 
-            // type node
-            if (node.hasChild(TYPE_TAG))
+            if (node.hasChild(SbmlTags.TYPE))
             {
-                XMLNode typeNode = node.getChild(TYPE_TAG);
+                XMLNode typeNode = node.getChild(SbmlTags.TYPE);
 
                 Type enumType = Type.GetType("pmfml-cs.ModelType");
                 ModelType type = (ModelType)Enum.Parse(enumType, typeNode.getChild(0).getCharacters());
@@ -626,28 +425,18 @@ namespace pmfml_cs.sbml
             }
 
             // rights node
-            if (node.hasChild(RIGHTS_TAG))
+            if (node.hasChild(SbmlTags.RIGHTS))
             {
-                XMLNode rightsNode = node.getChild(RIGHTS_TAG);
-                metadata.setRights(rightsNode.getChild(0).getCharacters());
+                XMLNode rightsNode = node.getChild(SbmlTags.RIGHTS);
+                metadata.rights = rightsNode.getChild(0).getCharacters();
             }
 
             // reference node
-            if (node.hasChild(REFERENCE_TAG))
+            if (node.hasChild(SbmlTags.SOURCE))
             {
-                XMLNode referenceNode = node.getChild(REFERENCE_TAG);
-                metadata.setReferenceLink(referenceNode.getChild(0).getCharacters());
+                XMLNode referenceNode = node.getChild(SbmlTags.SOURCE);
+                metadata.referenceLink = referenceNode.getChild(0).getCharacters();
             }
-        }
-
-        public Metadata getMetadata()
-        {
-            return metadata;
-        }
-
-        public XMLNode getAnnotation()
-        {
-            return annotation;
         }
     }
 
@@ -657,13 +446,10 @@ namespace pmfml_cs.sbml
     /// </summary>
     public class Model1Annotation
     {
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
-
-        Uncertainties uncertainties;
-        List<Reference> refs;
-        int condId;
-        XMLNode annotation;
+        public Uncertainties uncertainties { get; }
+        public List<Reference> references { get; }
+        public int condId { get; }
+        public XMLNode annotation { get; }
 
         /// <summary>
         /// Gets fields from existing primary model annotation
@@ -673,7 +459,7 @@ namespace pmfml_cs.sbml
             this.annotation = annotation;
 
             // Gets condId
-            condId = new CondIdNode(annotation.getChild(CondIdNode.TAG)).getCondId();
+            condId = new CondIdNode(annotation.getChild(SbmlTags.COND_ID)).getCondId();
 
             // Gets model quality annotation
             if (annotation.hasChild(UncertaintyNode.TAG))
@@ -683,13 +469,13 @@ namespace pmfml_cs.sbml
             }
 
             // Gets references
-            refs = new List<Reference>();
+            references = new List<Reference>();
             for (int i = 0; i < annotation.getNumChildren(); i++)
             {
                 XMLNode currentNode = annotation.getChild(i);
                 if (currentNode.getName().Equals(ReferenceSBMLNode.TAG))
                 {
-                    refs.Add(new ReferenceSBMLNode(currentNode).toReference());
+                    references.Add(new ReferenceSBMLNode(currentNode).toReference());
                 }
             }
         }
@@ -697,7 +483,7 @@ namespace pmfml_cs.sbml
         public Model1Annotation(Uncertainties uncertainties, List<Reference> references, int condId)
         {
             // Builds metadata node
-            XMLTriple triple = new XMLTriple(METADATA_TAG, "", METADATA_NS);
+            XMLTriple triple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS);
             annotation = new XMLNode(triple);
 
             // Build uncertainties node
@@ -706,36 +492,16 @@ namespace pmfml_cs.sbml
             // Builds references nodes
             foreach (Reference reference in references)
             {
-                annotation.addChild(new ReferenceSBMLNode(reference).getNode());
+                annotation.addChild(new ReferenceSBMLNode(reference).node);
             }
 
             // Builds condID node
-            annotation.addChild(new CondIdNode(condId).getNode());
+            annotation.addChild(new CondIdNode(condId).node);
 
             // Saves fields
             this.uncertainties = uncertainties;
-            this.refs = references;
+            this.references = references;
             this.condId = condId;
-        }
-
-        public Uncertainties getUncertainties()
-        {
-            return uncertainties;
-        }
-
-        public List<Reference> getReferences()
-        {
-            return refs;
-        }
-
-        public int getCondId()
-        {
-            return condId;
-        }
-
-        public XMLNode getAnnotation()
-        {
-            return annotation;
         }
     }
 
@@ -745,14 +511,10 @@ namespace pmfml_cs.sbml
     /// </summary>
     public class Model2Annotation
     {
-
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
-
-        List<Reference> references;
-        int globalModelID;
-        Uncertainties uncertainties;
-        XMLNode annotation;
+        public List<Reference> references { get; }
+        public int globalModelID { get; }
+        public Uncertainties uncertainties { get; }
+        public XMLNode annotation { get; }
 
         /// <summary>
         /// Gets global model id, uncertainties and literature items of the
@@ -764,7 +526,7 @@ namespace pmfml_cs.sbml
 
             // Gets global model ID
             globalModelID = new GlobalModelIdNode(
-                annotation.getChild(GlobalModelIdNode.TAG)).getGlobalModelId();
+                annotation.getChild(SbmlTags.GLOBAL_MODEL_ID)).getGlobalModelId();
 
             // Gets model quality annotation
             if (annotation.hasChild(UncertaintyNode.TAG))
@@ -793,10 +555,10 @@ namespace pmfml_cs.sbml
         public Model2Annotation(int globalModelID, Uncertainties uncertainties,
             List<Reference> references)
         {
-            annotation = new XMLNode(new XMLTriple(METADATA_TAG, "", METADATA_NS));
+            annotation = new XMLNode(new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS));
 
             // Builds GlobalModelIdNode
-            annotation.addChild(new GlobalModelIdNode(globalModelID).getNode());
+            annotation.addChild(new GlobalModelIdNode(globalModelID).node);
 
             // Builds UncertaintyNode
             annotation.addChild(new UncertaintyNode(uncertainties).getNode());
@@ -804,7 +566,7 @@ namespace pmfml_cs.sbml
             // Builds reference nodes
             foreach (Reference reference in references)
             {
-                annotation.addChild(new ReferenceSBMLNode(reference).getNode());
+                annotation.addChild(new ReferenceSBMLNode(reference).node);
             }
 
             // Saves fields
@@ -812,11 +574,6 @@ namespace pmfml_cs.sbml
             this.references = references;
             this.uncertainties = uncertainties;
         }
-
-        public int getGlobalModelID() { return globalModelID; }
-        public List<Reference> getReferences() { return references; }
-        public Uncertainties getUncertainties() { return uncertainties; }
-        public XMLNode getAnnotation() { return annotation; }
     }
 
     /// <summary>Model rule.</summary>
@@ -848,7 +605,7 @@ namespace pmfml_cs.sbml
             rule.setMath(libsbml.parseFormula(formula));
             rule.setVariable(variable);
             ModelRuleAnnotation annot = new ModelRuleAnnotation(formulaName, modelClass, pmmLabId, references);
-            rule.setAnnotation(annot.getAnnotation());
+            rule.setAnnotation(annot.annotation);
         }
 
         public ModelRule(AssignmentRule rule)
@@ -877,21 +634,16 @@ namespace pmfml_cs.sbml
         public ModelClass modelClass { get; }
         public List<Reference> references { get; }
         public int pmmLabId { get; }
-        XMLNode annotation;
-
-        private const string FORMULA_TAG = "formulaName";
-        private const string SUBJECT_TAG = "subject";
-        private const string REFERENCE_TAG = "reference";
-        private const string PMMLAB_ID = "pmmlabId";
+        public XMLNode annotation { get; }
 
         public ModelRuleAnnotation(XMLNode annotation)
         {
             // Gets formula node
-            XMLNode nameNode = annotation.getChild(FORMULA_TAG);
+            XMLNode nameNode = annotation.getChild(SbmlTags.FORMULA_NAME);
             formulaName = nameNode.getChild(0).getCharacters();
 
             // Gets formula subject
-            if (annotation.hasChild(SUBJECT_TAG))
+            if (annotation.hasChild(SbmlTags.SUBJECT))
             {
                 // TODO: set annotation from string in node ...
             }
@@ -901,7 +653,7 @@ namespace pmfml_cs.sbml
             }
 
             // Gets PmmLab ID
-            if (annotation.hasChild(PMMLAB_ID))
+            if (annotation.hasChild(SbmlTags.PMMLAB_ID))
             {
                 pmmLabId = int.Parse(annotation.getChild(0).getCharacters());
             }
@@ -926,26 +678,29 @@ namespace pmfml_cs.sbml
             List<Reference> references)
         {
             // Builds metadata node
-            annotation = new XMLNode(new XMLTriple("metadata", "", "pmf"));
+            annotation = new XMLNode(new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS));
 
             // Creates annotation for formula name
-            XMLNode nameNode = new XMLNode(new XMLTriple(FORMULA_TAG, "", "pmmlab"));
+            XMLTriple nameTriple = new XMLTriple(SbmlTags.FORMULA_NAME, "", SbmlTags.PMMLAB_NS);
+            XMLNode nameNode = new XMLNode(nameTriple);
             nameNode.addChild(new XMLNode(formulaName));
             annotation.addChild(nameNode);
 
             // Creates annotation for modelClass
-            XMLNode modelClassNode = new XMLNode(new XMLTriple(SUBJECT_TAG, "", "pmmlab"));
+            XMLTriple modelClassTriple = new XMLTriple(SbmlTags.SUBJECT, "", SbmlTags.PMMLAB_NS);
+            XMLNode modelClassNode = new XMLNode(modelClassTriple);
             modelClassNode.addChild(new XMLNode(Extensions.modelClassName(modelClass)));
             annotation.addChild(modelClassNode);
 
             // Creates annotation for pmmlabId
-            XMLNode idNode = new XMLNode(new XMLTriple(PMMLAB_ID, "", "pmmlab"));
+            XMLTriple idTriple = new XMLTriple(SbmlTags.PMMLAB_ID, "", SbmlTags.PMMLAB_NS);
+            XMLNode idNode = new XMLNode(idTriple);
             idNode.addChild(new XMLNode(pmmlabId.ToString()));
 
             // Builds reference nodes
             foreach (Reference reference in references)
             {
-                annotation.addChild(new ReferenceSBMLNode(reference).getNode());
+                annotation.addChild(new ReferenceSBMLNode(reference).node);
             }
 
             // Saves formulaName, subject and model literature
@@ -954,8 +709,6 @@ namespace pmfml_cs.sbml
             this.pmmLabId = pmmlabId;
             this.references = references;
         }
-
-        public XMLNode getAnnotation() { return annotation; }
     }
 
     public class ModelVariable
@@ -981,107 +734,45 @@ namespace pmfml_cs.sbml
     /// Coefficient that extends the SBML Parameter with more data: P, error,
     /// correlations and a description tag.
     /// </summary>
-    public interface PMFCoefficient
-    {
-
-        Parameter getParameter();
-
-        string getId();
-        void setId(string id);
-
-        double getValue();
-        void setValue(double value);
-
-        string getUnit();
-        void setUnit(string unit);
-
-        double getP();
-        void setP(double p);
-        bool isSetP();
-
-        double getError();
-        void setError(double error);
-        bool isSetError();
-
-        double getT();
-        void setT(double t);
-        bool isSetT();
-
-        List<Correlation> getCorrelations();
-        void setCorrelations(List<Correlation> correlations);
-        bool isSetCorrelations();
-
-        string getDescription();
-        void setDescription(string description);
-        bool isSetDescription();
-
-        bool isStart();
-        void setIsStart(bool isStart);
-    }
-
-    public class PMFCoefficientImpl : PMFCoefficient
+    public class PmfCoefficient
     {
         private const int LEVEL = 3;
         private const int VERSION = 1;
 
-        private Parameter param;
-        private double p;
-        private double error;
-        private double t;
-        private List<Correlation> correlations;
-        private string desc;
-        private bool _isStart;
+        public Parameter parameter { get; }
+        public double p { get; set; }
+        public double error { get; set; }
+        public double t { get; set; }
+        public List<Correlation> correlations { get; set; }
+        public string description { get; set; }
+        public bool isStart { get; set; }
 
-        private static string P_NS = "pmmlab";
-        private static string P_TAG = "P";
-
-        private static string ERROR_NS = "pmmlab";
-        private static string ERROR_TAG = "error";
-
-        private static string T_NS = "pmmlab";
-        private static string T_TAG = "t";
-
-        private static string CORRELATION_NS = "pmmlab";
-        private static string CORRELATION_TAG = "correlation";
-
-        private static string ATTRIBUTE_NAME = "origname";
-        private static string ATTRIBUTE_VALUE = "value";
-
-        private static string DESC_NS = "pmmlab";
-        private static string DESC_TAG = "description";
-
-        private static string METADATA_NS = "pmf";
-        private static string METADATA_TAG = "pmmlab";
-
-        private static string ISSTART_NS = "pmmlab";
-        private static string ISSTART_TAG = "isStart";
-
-        public PMFCoefficientImpl(Parameter parameter)
+        public PmfCoefficient(Parameter parameter)
         {
 
-            param = parameter;
+            this.parameter = parameter;
 
             // Parses annotation
             XMLNode annotation = parameter.getAnnotation();
 
             // Gets P
-            if (annotation.hasChild(P_TAG))
+            if (annotation.hasChild(SbmlTags.P))
             {
-                XMLNode pNode = annotation.getChild(P_TAG);
+                XMLNode pNode = annotation.getChild(SbmlTags.P);
                 p = double.Parse(pNode.getChild(0).getCharacters());
             }
 
             // Gets error
-            if (annotation.hasChild(ERROR_TAG))
+            if (annotation.hasChild(SbmlTags.ERROR))
             {
-                XMLNode errorNode = annotation.getChild(ERROR_TAG);
+                XMLNode errorNode = annotation.getChild(SbmlTags.ERROR);
                 error = double.Parse(errorNode.getChild(0).getCharacters());
             }
 
             // Gets t
-            if (annotation.hasChild(T_TAG))
+            if (annotation.hasChild(SbmlTags.T))
             {
-                XMLNode tNode = annotation.getChild(T_TAG);
+                XMLNode tNode = annotation.getChild(SbmlTags.T);
                 t = double.Parse(tNode.getChild(0).getCharacters());
             }
 
@@ -1090,14 +781,14 @@ namespace pmfml_cs.sbml
             for (int i = 0; i < annotation.getNumChildren(); i++)
             {
                 XMLNode currentNode = annotation.getChild(i);
-                if (currentNode.getName().Equals(CORRELATION_TAG))
+                if (currentNode.getName().Equals(SbmlTags.CORRELATION))
                 {
                     XMLAttributes attrs = currentNode.getAttributes();
-                    string corrName = attrs.getValue(ATTRIBUTE_NAME);
+                    string corrName = attrs.getValue(SbmlTags.ORIGNAME_ATTR);
 
-                    if (attrs.hasAttribute(ATTRIBUTE_VALUE))
+                    if (attrs.hasAttribute(SbmlTags.VALUE_ATTR))
                     {
-                        string valueAsString = attrs.getValue(ATTRIBUTE_VALUE);
+                        string valueAsString = attrs.getValue(SbmlTags.VALUE_ATTR);
                         double corrValue = double.Parse(valueAsString);
                         correlations.Add(new Correlation(corrName, corrValue));
                     }
@@ -1109,40 +800,40 @@ namespace pmfml_cs.sbml
             }
 
             // Gets description
-            if (annotation.hasChild(DESC_TAG))
+            if (annotation.hasChild(SbmlTags.DESCRIPTION))
             {
-                XMLNode descNode = annotation.getChild(DESC_TAG);
-                desc = descNode.getChild(0).getCharacters();
+                XMLNode descNode = annotation.getChild(SbmlTags.DESCRIPTION);
+                description = descNode.getChild(0).getCharacters();
             }
 
             // Gets isStart
-            if (annotation.hasChild(ISSTART_TAG))
+            if (annotation.hasChild(SbmlTags.IS_START))
             {
-                XMLNode isStartNode = annotation.getChild(ISSTART_TAG);
-                _isStart = bool.Parse(isStartNode.getChild(0).getCharacters());
+                XMLNode isStartNode = annotation.getChild(SbmlTags.IS_START);
+                isStart = bool.Parse(isStartNode.getChild(0).getCharacters());
             }
             else
             {
-                _isStart = false;
+                isStart = false;
             }
         }
 
-        public PMFCoefficientImpl(string id, double value, string unit, double p,
+        public PmfCoefficient(string id, double value, string unit, double p,
             double error, double t, List<Correlation> correlations, string desc,
             bool isStart)
         {
-            param = new Parameter(LEVEL, VERSION);
-            param.setId(id);
-            param.setValue(value);
-            param.setUnits(unit);
-            param.setConstant(true);
+            parameter = new Parameter(LEVEL, VERSION);
+            parameter.setId(id);
+            parameter.setValue(value);
+            parameter.setUnits(unit);
+            parameter.setConstant(true);
 
-            XMLNode annotation = new XMLNode(new XMLTriple(METADATA_TAG, "", METADATA_NS));
+            XMLNode annotation = new XMLNode(new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS));
 
             // Creates P annotation
             if (!double.IsNaN(p))
             {
-                XMLNode pNode = new XMLNode(new XMLTriple(P_TAG, "", P_NS));
+                XMLNode pNode = new XMLNode(new XMLTriple(SbmlTags.P, "", SbmlTags.PMMLAB_NS));
                 pNode.addChild(new XMLNode(p.ToString()));
                 annotation.addChild(pNode);
             }
@@ -1150,7 +841,7 @@ namespace pmfml_cs.sbml
             // Creates error annotation
             if (!double.IsNaN(error))
             {
-                XMLNode errorNode = new XMLNode(new XMLTriple(ERROR_TAG, "", ERROR_NS));
+                XMLNode errorNode = new XMLNode(new XMLTriple(SbmlTags.ERROR, "", SbmlTags.PMMLAB_NS));
                 errorNode.addChild(new XMLNode(errorNode.ToString()));
                 annotation.addChild(errorNode);
             }
@@ -1158,7 +849,7 @@ namespace pmfml_cs.sbml
             // Creates t annotation
             if (!double.IsNaN(t))
             {
-                XMLNode tNode = new XMLNode(new XMLTriple(T_TAG, "", T_NS));
+                XMLNode tNode = new XMLNode(new XMLTriple(SbmlTags.T, "", SbmlTags.PMMLAB_NS));
                 tNode.addChild(new XMLNode(tNode.ToString()));
                 annotation.addChild(tNode);
             }
@@ -1169,13 +860,13 @@ namespace pmfml_cs.sbml
                 foreach (Correlation correlation in correlations)
                 {
                     XMLAttributes attrs = new XMLAttributes();
-                    attrs.add(ATTRIBUTE_NAME, correlation.getName());
-                    if (correlation.isSetValue())
+                    attrs.add(SbmlTags.ORIGNAME_ATTR, correlation.name);
+                    if (!double.IsNaN(correlation.value))
                     {
-                        attrs.add(ATTRIBUTE_VALUE, correlation.getValue().ToString());
+                        attrs.add(SbmlTags.VALUE_ATTR, correlation.value.ToString());
                     }
 
-                    XMLTriple triple = new XMLTriple(CORRELATION_TAG, "", CORRELATION_NS);
+                    XMLTriple triple = new XMLTriple(SbmlTags.CORRELATION, "", SbmlTags.PMMLAB_NS);
                     annotation.addChild(new XMLNode(triple, attrs));
                 }
             }
@@ -1183,123 +874,60 @@ namespace pmfml_cs.sbml
             // Creates annotation for description
             if (!string.IsNullOrEmpty(desc))
             {
-                XMLNode descNode = new XMLNode(new XMLTriple(DESC_TAG, "", DESC_NS));
+                XMLTriple descTriple = new XMLTriple(SbmlTags.DESCRIPTION, "", SbmlTags.PMMLAB_NS);
+                XMLNode descNode = new XMLNode(descTriple);
                 descNode.addChild(new XMLNode(desc));
                 annotation.addChild(descNode);
             }
 
             // Creates annotation for isStart
-            XMLNode isStartNode = new XMLNode(new XMLTriple(ISSTART_TAG, "", ISSTART_NS));
+            XMLTriple isStartTriple = new XMLTriple(SbmlTags.IS_START, "", SbmlTags.PMMLAB_NS);
+            XMLNode isStartNode = new XMLNode(isStartTriple);
             isStartNode.addChild(new XMLNode(isStart.ToString()));
             annotation.addChild(isStartNode);
 
-            param.setAnnotation(annotation);
+            parameter.setAnnotation(annotation);
 
             this.p = p;
             this.error = error;
             this.t = t;
             this.correlations = correlations;
-            this.desc = desc;
-            _isStart = isStart;
+            this.description = desc;
+            this.isStart = isStart;
         }
 
-        public PMFCoefficientImpl(string id, double value, string unit) :
+        public PmfCoefficient(string id, double value, string unit) :
             this(id, value, unit, double.NaN, double.NaN, double.NaN, null, "", false)
         {
         }
 
-        // parameter
-        public Parameter getParameter() { return param; }
-
         // --- id ---
-        public string getId() { return param.getId(); }
-        public void setId(string id) { param.setId(id); }
+        public string getId() { return parameter.getId(); }
+        public void setId(string id) { parameter.setId(id); }
 
         // --- value ---
-        public double getValue() { return param.getValue(); }
-        public void setValue(double value) { param.setValue(value); }
+        public double getValue() { return parameter.getValue(); }
+        public void setValue(double value) { parameter.setValue(value); }
 
         // --- unit ---
-        public string getUnit() { return param.getUnits(); }
-        public void setUnit(string unit) { param.setUnits(unit); }
-
-        // --- P ---
-        public double getP() { return p; }
-        public void setP(double p) { this.p = p; }
-        public bool isSetP() { return !double.IsNaN(p); }
-
-        // --- error ---
-        public double getError() { return error; }
-        public void setError(double error) { this.error = error; }
-        public bool isSetError() { return !double.IsNaN(error); }
-
-        // --- T ---
-        public double getT() { return t; }
-        public void setT(double t) { this.t = t; }
-        public bool isSetT() { return !double.IsNaN(t); }
-
-        // --- correlations ---
-        public List<Correlation> getCorrelations() { return correlations; }
-        public void setCorrelations(List<Correlation> correlations) { this.correlations = correlations; }
-        public bool isSetCorrelations() { return correlations != null; }
-
-        // --- description ---
-        public string getDescription() { return desc; }
-        public void setDescription(string desc) { this.desc = desc; }
-        public bool isSetDescription() { return !string.IsNullOrEmpty(desc); }
-
-        // --- isStart ---
-        public bool isStart() { return _isStart; }
-        public void setIsStart(bool isStart) { _isStart = isStart; }
+        public string getUnit() { return parameter.getUnits(); }
+        public void setUnit(string unit) { parameter.setUnits(unit); }
     }
 
-    public interface PMFCompartment
-    {
-        string getId();
-        void setId(string id);
-
-        string getName();
-        void setName(string name);
-
-        string getPmfCode();
-        void setPmfCode(string code);
-        bool isSetPmfCode();
-
-        string getDetail();
-        void setDetail(string detail);
-        bool isSetDetail();
-
-        List<ModelVariable> getModelVariables();
-        void setModelVariables(List<ModelVariable> modelVariables);
-        bool isSetModelVariables();
-    }
-
-    public class PMFCompartmentImpl : PMFCompartment
+    public class PmfCompartment
     {
         private const int LEVEL = 3;
         private const int VERSION = 1;
 
-        private const string CODE_TAG = "source";
-        private const string CODE_NS = "dc";
-
-        private const string DETAIL_TAG = "detail";
-        private const string DETAIL_NS = "pmmlab";
-
-        private const string VAR_TAG = "environment";
-        private const string VAR_NS = "pmmlab";
-
         private const string ATTRIBUTE_NAME = "name";
         private const string ATTRIBUTE_VALUE = "value";
 
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
+        public Compartment compartment { get; }
+        public string pmfCode { get; set; }
+        public string detail { get; set; }
+        public List<ModelVariable> modelVariables { get; set; }
 
-        private Compartment compartment;
-        private string pmfCode;
-        private string detail;
-        private List<ModelVariable> modelVariables;
-
-        public PMFCompartmentImpl(Compartment compartment)
+        public PmfCompartment(Compartment compartment)
         {
             this.compartment = compartment;
 
@@ -1308,16 +936,16 @@ namespace pmfml_cs.sbml
                 XMLNode annot = compartment.getAnnotation();
 
                 // Gets PMF code
-                if (annot.hasChild(CODE_TAG))
+                if (annot.hasChild(SbmlTags.SOURCE))
                 {
-                    XMLNode codeNode = annot.getChild(CODE_TAG);
+                    XMLNode codeNode = annot.getChild(SbmlTags.SOURCE);
                     pmfCode = codeNode.getChild(0).getCharacters();
                 }
 
                 // Gets details
-                if (annot.hasChild(DETAIL_TAG))
+                if (annot.hasChild(SbmlTags.DETAIL))
                 {
-                    XMLNode detailsNode = annot.getChild(DETAIL_TAG);
+                    XMLNode detailsNode = annot.getChild(SbmlTags.DETAIL);
                     detail = detailsNode.getChild(0).getCharacters();
                 }
 
@@ -1326,7 +954,7 @@ namespace pmfml_cs.sbml
                 for (int i = 0; i < annot.getNumChildren(); i++)
                 {
                     XMLNode currentNode = annot.getChild(i);
-                    if (currentNode.getName().Equals(VAR_TAG))
+                    if (currentNode.getName().Equals(SbmlTags.ENVIRONMENT))
                     {
                         XMLAttributes attrs = currentNode.getAttributes();
                         string name = attrs.getValue(ATTRIBUTE_NAME);
@@ -1339,7 +967,7 @@ namespace pmfml_cs.sbml
             }
         }
 
-        public PMFCompartmentImpl(string id, string name, string pmfCode, string detail,
+        public PmfCompartment(string id, string name, string pmfCode, string detail,
             List<ModelVariable> modelVariables)
         {
             compartment = new Compartment(LEVEL, VERSION);
@@ -1351,12 +979,12 @@ namespace pmfml_cs.sbml
             this.modelVariables = modelVariables;
 
             // Builds metadata node
-            XMLNode annot = new XMLNode(new XMLTriple(METADATA_TAG, "", METADATA_NS));
+            XMLNode annot = new XMLNode(new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMMLAB_NS));
 
             // Creates annotation for the PMF code
             if (!string.IsNullOrEmpty(pmfCode))
             {
-                XMLNode codeNode = new XMLNode(new XMLTriple(CODE_TAG, "", CODE_NS));
+                XMLNode codeNode = new XMLNode(new XMLTriple(SbmlTags.SOURCE, "", SbmlTags.DC_NS));
                 codeNode.addChild(new XMLNode(pmfCode));
                 annot.addChild(codeNode);
             }
@@ -1364,7 +992,7 @@ namespace pmfml_cs.sbml
             // Creates annotation for the matrix details
             if (!string.IsNullOrEmpty(detail))
             {
-                XMLNode detailsNode = new XMLNode(new XMLTriple(DETAIL_TAG, "", DETAIL_NS));
+                XMLNode detailsNode = new XMLNode(new XMLTriple(SbmlTags.DETAIL, "", SbmlTags.PMMLAB_NS));
                 detailsNode.addChild(new XMLNode(detail));
                 annot.addChild(detailsNode);
             }
@@ -1372,7 +1000,7 @@ namespace pmfml_cs.sbml
             // Creates annotation for model variables (Temperature, pH, aW)
             if (modelVariables != null)
             {
-                XMLTriple varTriple = new XMLTriple(VAR_TAG, "", VAR_NS);
+                XMLTriple varTriple = new XMLTriple(SbmlTags.ENVIRONMENT, "", SbmlTags.PMMLAB_NS);
                 foreach (ModelVariable mv in modelVariables)
                 {
                     XMLAttributes attrs = new XMLAttributes();
@@ -1389,7 +1017,7 @@ namespace pmfml_cs.sbml
             compartment.setAnnotation(annot);
         }
 
-        public PMFCompartmentImpl(string id, string name)
+        public PmfCompartment(string id, string name)
         {
             compartment = new Compartment(LEVEL, VERSION);
             compartment.setId(id);
@@ -1404,56 +1032,9 @@ namespace pmfml_cs.sbml
         // -- name ---
         public string getName() { return compartment.getName(); }
         public void setName(string name) { compartment.setName(name); }
-
-        // --- pmf code ---
-        public string getPmfCode() { return pmfCode; }
-        public void setPmfCode(string code) { pmfCode = code; }
-        public bool isSetPmfCode() { return !string.IsNullOrEmpty(pmfCode); }
-
-        // --- detail ---
-        public string getDetail() { return detail; }
-        public void setDetail(string detail) { this.detail = detail; }
-        public bool isSetDetail() { return !string.IsNullOrEmpty(detail); }
-
-        // --- model variables ---
-        public List<ModelVariable> getModelVariables() { return modelVariables; }
-        public void setModelVariables(List<ModelVariable> modelVariables) { this.modelVariables = modelVariables; }
-        public bool isSetModelVariables() { return modelVariables != null; }
-
-        // getCompartment
-        public Compartment getCompartment() { return compartment; }
     }
 
-    public interface PMFSpecies
-    {
-        Species getSpecies();
-
-        string getCompartment();
-        void setCompartment(string compartment);
-
-        string getId();
-        void setId(string id);
-
-        string getName();
-        void setName(string name);
-
-        string getUnits();
-        void setUnits(string units);
-
-        string getCombaseCode();
-        void setCombaseCode(string code);
-        bool isSetCombaseCode();
-
-        string getDetail();
-        void setDetail(string detail);
-        bool isSetDetail();
-
-        string getDescription();
-        void setDescription(string description);
-        bool isSetDescription();
-    }
-
-    public class PMFSpeciesImpl : PMFSpecies
+    public class PmfSpecies
     {
         public static bool BOUNDARY_CONDITION = true;
         public static bool CONSTANT = false;
@@ -1462,24 +1043,12 @@ namespace pmfml_cs.sbml
         const int LEVEL = 3;
         const int VERSION = 1;
 
-        const string SOURCE_NS = "dc";
-        const string SOURCE_TAG = "source";
-
-        const string DETAIL_NS = "pmmlab";
-        const string DETAIL_TAG = "detail";
-
-        const string DESC_NS = "pmmlab";
-        const string DESC_TAG = "desc";
-
-        const string METADATA_NS = "pmf";
-        const string METADATA_TAG = "metadata";
-
         private Species species;
-        private string combaseCode;
-        private string detail;
-        private string description;
+        public string combaseCode { get; set; }
+        public string detail { get; set; }
+        public string description { get; set; }
 
-        public PMFSpeciesImpl(Species species)
+        public PmfSpecies(Species species)
         {
             this.species = species;
 
@@ -1488,30 +1057,30 @@ namespace pmfml_cs.sbml
                 XMLNode annot = species.getAnnotation();
 
                 // Gets CAS number
-                if (annot.hasChild(SOURCE_TAG))
+                if (annot.hasChild(SbmlTags.SOURCE))
                 {
-                    XMLNode sourceNode = annot.getChild(SOURCE_TAG);
+                    XMLNode sourceNode = annot.getChild(SbmlTags.SOURCE);
                     string wholeReference = sourceNode.getChild(0).getCharacters();
                     combaseCode = wholeReference.Substring(wholeReference.LastIndexOf('/') + 1);
                 }
 
                 // Gets description
-                if (annot.hasChild(DETAIL_TAG))
+                if (annot.hasChild(SbmlTags.DETAIL))
                 {
-                    XMLNode detailNode = annot.getChild(DETAIL_TAG);
+                    XMLNode detailNode = annot.getChild(SbmlTags.DETAIL);
                     detail = detailNode.getChild(0).getCharacters();
                 }
 
                 // Gets dep description
-                if (annot.hasChild(DESC_TAG))
+                if (annot.hasChild(SbmlTags.DESCRIPTION))
                 {
-                    XMLNode descNode = annot.getChild(DESC_TAG);
+                    XMLNode descNode = annot.getChild(SbmlTags.DESCRIPTION);
                     description = descNode.getChild(0).getCharacters();
                 }
             }
         }
 
-        public PMFSpeciesImpl(string compartment, string id, string name,
+        public PmfSpecies(string compartment, string id, string name,
             string substanceUnits, string combaseCode, string detail,
             string description)
         {
@@ -1527,13 +1096,13 @@ namespace pmfml_cs.sbml
                 !string.IsNullOrEmpty(detail) ||
                 !string.IsNullOrEmpty(description))
             {
-                XMLTriple triple = new XMLTriple(METADATA_TAG, "", METADATA_NS);
+                XMLTriple triple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMMLAB_NS);
                 XMLNode annot = new XMLNode(triple);
 
                 // Builds reference tag
                 if (!string.IsNullOrEmpty(combaseCode))
                 {
-                    XMLTriple refTriple = new XMLTriple(SOURCE_TAG, "", SOURCE_NS);
+                    XMLTriple refTriple = new XMLTriple(SbmlTags.SOURCE, "", SbmlTags.DC_NS);
                     XMLNode refNode = new XMLNode(refTriple);
                     refNode.addChild(new XMLNode("http://identifiers.org/ncim/" + combaseCode));
                     annot.addChild(refNode);
@@ -1544,7 +1113,7 @@ namespace pmfml_cs.sbml
                 // Builds detail tag
                 if (!string.IsNullOrEmpty(detail))
                 {
-                    XMLTriple detailTriple = new XMLTriple(DETAIL_TAG, "", DETAIL_NS);
+                    XMLTriple detailTriple = new XMLTriple(SbmlTags.DETAIL, "", SbmlTags.PMMLAB_NS);
                     XMLNode detailNode = new XMLNode(detailTriple);
                     annot.addChild(new XMLNode(detailNode));
 
@@ -1554,7 +1123,7 @@ namespace pmfml_cs.sbml
                 // Builds dep description tag
                 if (!string.IsNullOrEmpty(description))
                 {
-                    XMLTriple descTriple = new XMLTriple(DESC_TAG, "", DESC_NS);
+                    XMLTriple descTriple = new XMLTriple(SbmlTags.DESCRIPTION, "", SbmlTags.PMMLAB_NS);
                     XMLNode descNode = new XMLNode(descTriple);
                     annot.addChild(descNode);
 
@@ -1564,7 +1133,7 @@ namespace pmfml_cs.sbml
         }
 
         // constructor with compartment, id, name and substanceUnits
-        public PMFSpeciesImpl(string compartment, string id, string name, string substanceUnits)
+        public PmfSpecies(string compartment, string id, string name, string substanceUnits)
         : this(compartment, id, name, substanceUnits, null, null, null) { }
 
         // --- species ---
@@ -1585,21 +1154,6 @@ namespace pmfml_cs.sbml
         // --- units ---
         public string getUnits() { return species.getUnits(); }
         public void setUnits(string units) { species.setUnits(units); }
-
-        // --- combase code ---
-        public string getCombaseCode() { return combaseCode; }
-        public void setCombaseCode(string combaseCode) { this.combaseCode = combaseCode; }
-        public bool isSetCombaseCode() { return !string.IsNullOrEmpty(combaseCode); }
-
-        // --- detail ---
-        public string getDetail() { return detail; }
-        public void setDetail(string detail) { this.detail = detail; }
-        public bool isSetDetail() { return !string.IsNullOrEmpty(detail); }
-
-        // --- description ---
-        public string getDescription() { return description; }
-        public void setDescription(string description) { this.description = description; }
-        public bool isSetDescription() { return !string.IsNullOrEmpty(description); }
     }
 
     public class PMFUnit
@@ -1640,8 +1194,6 @@ namespace pmfml_cs.sbml
         private const int LEVEL = 3;
         private const int VERSION = 1;
 
-        const string TRANSFORMATION = "transformation";
-
         public string transformationName { get; set; }
         UnitDefinition unitDefinition;
 
@@ -1663,12 +1215,12 @@ namespace pmfml_cs.sbml
             if (!string.IsNullOrEmpty(transformationName))
             {
                 // Creates transformation node
-                XMLTriple transformationTriple = new XMLTriple(TRANSFORMATION, "", "pmmlab");
+                XMLTriple transformationTriple = new XMLTriple(SbmlTags.TRANSFORMATION, "", SbmlTags.PMMLAB_NS);
                 XMLNode transformationNode = new XMLNode(transformationTriple);
                 transformationNode.addChild(new XMLNode(transformationName));
 
                 // Creates metadata node
-                XMLTriple metadataTriple = new XMLTriple("metadata", "", "pmf");
+                XMLTriple metadataTriple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS);
                 XMLNode metadata = new XMLNode(metadataTriple);
                 metadata.addChild(transformationNode);
 
@@ -1686,7 +1238,7 @@ namespace pmfml_cs.sbml
             if (unitDefinition.isSetAnnotation())
             {
                 XMLNode metadata = unitDefinition.getAnnotation();
-                XMLNode transformationNode = metadata.getChild(TRANSFORMATION);
+                XMLNode transformationNode = metadata.getChild(SbmlTags.TRANSFORMATION);
                 transformationName = transformationNode.getChild(0).getCharacters();
             }
         }
@@ -1727,14 +1279,11 @@ namespace pmfml_cs.sbml
 
     public class PrimaryModelNode
     {
-        const string TAG = "primaryModel";
-        const string NS = "pmmlab";
-
-        XMLNode node;
+        public XMLNode node { get; }
 
         public PrimaryModelNode(string model)
         {
-            node = new XMLNode(new XMLTriple(TAG, "", NS));
+            node = new XMLNode(new XMLTriple(SbmlTags.PRIMARY_MODEL, "", SbmlTags.PMMLAB_NS));
             node.addChild(new XMLNode(model));
         }
 
@@ -1744,60 +1293,24 @@ namespace pmfml_cs.sbml
         }
 
         public string getPrimaryModel() { return node.getChild(0).getCharacters(); }
-        public XMLNode getNode() { return node; }
     }
 
-    public interface Reference
+    public class Reference
     {
-
-        string getAuthor();
-        void setAuthor(string author);
-        bool isSetAuthor();
-
-        int getYear();
-        void setYear(int year);
-        bool isSetYear();
-
-        string getTitle();
-        void setTitle(string title);
-        bool isSetTitle();
-
-        string getAbstractText();
-        void setAbstractText(string text);
-        bool isSetAbstractText();
-
-        string getJournal();
-        void setJournal(string journal);
-        bool isSetJournal();
-
-        string getVolume();
-        void setVolume(string volume);
-        bool isSetVolume();
-
-        string getIssue();
-        void setIssue(string issue);
-        bool isSetIssue();
-
-        int getPage();
-        void setPage(int page);
-        bool isSetPage();
-
-        int getApprovalMode();
-        void setApprovalMode(int mode);
-        bool isSetApprovalMode();
-
-        string getWebsite();
-        void setWebsite(string website);
-        bool isSetWebsite();
-
-        ReferenceType getType();
-        void setType(ReferenceType type);
-        bool isSetType();
-
-        string getComment();
-        void setComment(string comment);
-        bool isSetComment();
+        public string author { get; set; }
+        public int year { get; set; }
+        public string title { get; set; }
+        public string abstractText { get; set; }
+        public string journal { get; set; }
+        public string volume { get; set; }
+        public string issue { get; set; }
+        public int? page { get; set; }
+        public int? approvalMode { get; set; }
+        public string website { get; set; }
+        public ReferenceType? type { get; set; }
+        public string comment { get; set; }
     }
+
 
     public enum ReferenceType
     {
@@ -1811,137 +1324,12 @@ namespace pmfml_cs.sbml
         Berich = 8
     };
 
-    public class ReferenceImpl : Reference
-    {
-        private const string AUTHOR = "reference";
-        private const string YEAR = "year";
-        private const string TITLE = "abstract";
-        private const string ABSTRACT_TEXT = "abstractText";
-        private const string JOURNAL = "journal";
-        private const string VOLUME = "volume";
-        private const string ISSUE = "issue";
-        private const string PAGE = "page";
-        private const string APPROVAL_MODE = "approvalMode";
-        private const string WEBSITE = "website";
-        private const string TYPE = "type";
-        private const string COMMENT = "comment";
-
-        private Hashtable ht;
-
-        public ReferenceImpl()
-        {
-            ht = new Hashtable();
-        }
-
-        // author
-        string Reference.getAuthor() { return (string)ht[AUTHOR]; }
-        void Reference.setAuthor(string author)
-        {
-            if (!string.IsNullOrEmpty(author))
-                ht[AUTHOR] = author;
-        }
-        bool Reference.isSetAuthor() { return ht.ContainsKey(AUTHOR); }
-
-        // year
-        int Reference.getYear() { return (int)ht[YEAR]; }
-        void Reference.setYear(int year) { ht[YEAR] = year; }
-        bool Reference.isSetYear() { return ht.ContainsKey(YEAR); }
-
-        // title
-        string Reference.getTitle() { return (string)ht[TITLE]; }
-        void Reference.setTitle(string title) { ht[TITLE] = title; }
-        bool Reference.isSetTitle() { return ht.ContainsKey(TITLE); }
-
-        // abstract text
-        string Reference.getAbstractText() { return (string)ht[ABSTRACT_TEXT]; }
-        void Reference.setAbstractText(string abstractText)
-        {
-            if (!string.IsNullOrEmpty(abstractText))
-            {
-                ht[ABSTRACT_TEXT] = abstractText;
-            }
-        }
-        bool Reference.isSetAbstractText() { return ht.ContainsKey(ABSTRACT_TEXT); }
-
-        // journal
-        string Reference.getJournal() { return (string)ht[JOURNAL]; }
-        void Reference.setJournal(string journal)
-        {
-            if (!string.IsNullOrEmpty(journal))
-            {
-                ht[JOURNAL] = journal;
-            }
-        }
-        bool Reference.isSetJournal() { return ht.ContainsKey(JOURNAL); }
-
-        // volume
-        public string getVolume() { return (string)ht[VOLUME]; }
-        public void setVolume(string volume)
-        {
-            if (!string.IsNullOrEmpty(volume))
-            {
-                ht[VOLUME] = volume;
-            }
-        }
-        public bool isSetVolume() { return ht.ContainsKey(VOLUME); }
-
-        // issue
-        public string getIssue() { return (string)ht[ISSUE]; }
-        public void setIssue(string issue)
-        {
-            if (!string.IsNullOrEmpty(issue))
-            {
-                ht[ISSUE] = issue;
-            }
-        }
-        public bool isSetIssue() { return ht.ContainsKey(ISSUE); }
-
-        // page
-        public int getPage() { return (int)ht[PAGE]; }
-        public void setPage(int page) { ht[PAGE] = page; }
-        public bool isSetPage() { return ht.ContainsKey(PAGE); }
-
-        // approval mode
-        public int getApprovalMode() { return (int)ht[APPROVAL_MODE]; }
-        public void setApprovalMode(int mode) { ht[APPROVAL_MODE] = mode; }
-        public bool isSetApprovalMode() { return ht.ContainsKey(APPROVAL_MODE); }
-
-        // website
-        public string getWebsite() { return (string)ht[WEBSITE]; }
-        public void setWebsite(string website)
-        {
-            if (!string.IsNullOrEmpty(website))
-            {
-                ht[WEBSITE] = website;
-            }
-        }
-        public bool isSetWebsite() { return ht.ContainsKey(WEBSITE); }
-
-        // type
-        public ReferenceType getType() { return (ReferenceType)ht[TYPE]; }
-        public void setType(ReferenceType type) { ht[TYPE] = type; }
-        public bool isSetType() { return ht.ContainsKey(TYPE); }
-
-        // comment
-        public string getComment() { return (string)ht[COMMENT]; }
-        public void setComment(string comment)
-        {
-            if (!string.IsNullOrEmpty(comment))
-            {
-                ht[COMMENT] = comment;
-            }
-        }
-        public bool isSetComment() { return ht.ContainsKey(COMMENT); }
-    }
-
     public class ReferenceSBMLNode
     {
         public const string NS = "dc";
         public const string TAG = "reference";
 
-        private LiteratureSpecificationI spec = new RIS();
-
-        XMLNode node;
+        public XMLNode node { get; }
 
         public ReferenceSBMLNode(Reference reference)
         {
@@ -1952,90 +1340,90 @@ namespace pmfml_cs.sbml
             XMLNode refNode = new XMLNode(refTriple, null, namespaces);
 
             // author node
-            if (reference.isSetAuthor())
+            if (!string.IsNullOrEmpty(reference.author))
             {
-                XMLTriple triple = new XMLTriple(spec.getAuthor(), "", "ref");
-                XMLNode node = new XMLNode(reference.getAuthor());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_AUTHOR, "", "ref");
+                XMLNode node = new XMLNode(reference.author);
                 refNode.addChild(node);
             }
 
             // title node
-            if (reference.isSetTitle())
+            if (!string.IsNullOrEmpty(reference.title))
             {
-                XMLTriple triple = new XMLTriple(spec.getTitle(), "", "ref");
-                XMLNode node = new XMLNode(reference.getTitle());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_TITLE, "", "ref");
+                XMLNode node = new XMLNode(reference.title);
                 refNode.addChild(node);
             }
 
             //  abstract node
-            if (reference.isSetAbstractText())
+            if (!string.IsNullOrEmpty(reference.abstractText))
             {
-                XMLTriple triple = new XMLTriple(spec.getAbstract(), "", "ref");
-                XMLNode node = new XMLNode(reference.getAbstractText());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_ABSTRACT, "", "ref");
+                XMLNode node = new XMLNode(reference.abstractText);
                 refNode.addChild(node);
             }
 
             // journal node
-            if (reference.isSetJournal())
+            if (!string.IsNullOrEmpty(reference.journal))
             {
-                XMLTriple triple = new XMLTriple(spec.getJournal(), "", "ref");
-                XMLNode node = new XMLNode(reference.getJournal());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_JOURNAL, "", "ref");
+                XMLNode node = new XMLNode(reference.journal);
                 refNode.addChild(node);
             }
 
             // volume node
-            if (reference.isSetVolume())
+            if (!string.IsNullOrEmpty(reference.volume))
             {
-                XMLTriple triple = new XMLTriple(spec.getVolume(), "", "ref");
-                XMLNode node = new XMLNode(reference.getVolume());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_VOLUME, "", "ref");
+                XMLNode node = new XMLNode(reference.volume);
                 refNode.addChild(node);
             }
 
             // issue node
-            if (reference.isSetIssue())
+            if (!string.IsNullOrEmpty(reference.issue))
             {
-                XMLTriple triple = new XMLTriple(spec.getIssue(), "", "ref");
-                XMLNode node = new XMLNode(reference.getIssue());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_ISSUE, "", "ref");
+                XMLNode node = new XMLNode(reference.issue);
                 refNode.addChild(node);
             }
 
             // page
-            if (reference.isSetPage())
+            if (reference.page.HasValue)
             {
-                XMLTriple triple = new XMLTriple(spec.getPage(), "", "ref");
-                XMLNode node = new XMLNode(reference.getPage().ToString());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_PAGE, "", "ref");
+                XMLNode node = new XMLNode(reference.page.ToString());
                 refNode.addChild(node);
             }
 
             // approval mode
-            if (reference.isSetApprovalMode())
+            if (reference.approvalMode.HasValue)
             {
-                XMLTriple triple = new XMLTriple(spec.getApproval(), "", "ref");
-                XMLNode node = new XMLNode(reference.getApprovalMode().ToString());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_ISSUE, "", "ref");
+                XMLNode node = new XMLNode(reference.approvalMode.ToString());
                 refNode.addChild(node);
             }
 
             // website
-            if (reference.isSetWebsite())
+            if (!string.IsNullOrEmpty(reference.website))
             {
-                XMLTriple triple = new XMLTriple(spec.getWebsite(), "", "ref");
-                XMLNode node = new XMLNode(reference.getWebsite());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_WEBSITE, "", "ref");
+                XMLNode node = new XMLNode(reference.website);
                 refNode.addChild(node);
             }
 
             // type
-            if (reference.isSetType())
+            if (reference.type.HasValue)
             {
-                XMLTriple triple = new XMLTriple(spec.getType(), "", "ref");
-                XMLNode node = new XMLNode(reference.getType().ToString());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_TYPE, "", "ref");
+                XMLNode node = new XMLNode(reference.type.ToString());
                 refNode.addChild(node);
             }
 
             // comment
-            if (reference.isSetComment())
+            if (!string.IsNullOrEmpty(reference.comment))
             {
-                XMLTriple triple = new XMLTriple(spec.getComment(), "", "ref");
-                XMLNode node = new XMLNode(reference.getComment());
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_COMMENT, "", "ref");
+                XMLNode node = new XMLNode(reference.comment);
                 refNode.addChild(node);
             }
         }
@@ -2047,158 +1435,129 @@ namespace pmfml_cs.sbml
 
         public Reference toReference()
         {
-            Reference reference = new ReferenceImpl();
+            Reference reference = new Reference();
 
             // author
-            if (node.hasChild(spec.getAuthor()))
+            if (node.hasChild(SbmlTags.RIS_AUTHOR))
             {
-                XMLNode authorNode = node.getChild(spec.getAuthor());
-                string author = authorNode.getChild(0).getCharacters();
-                reference.setAuthor(author);
+                XMLNode authorNode = node.getChild(SbmlTags.RIS_AUTHOR);
+                reference.author = authorNode.getChild(0).getCharacters();
             }
 
             // title
-            if (node.hasChild(spec.getTitle()))
+            if (node.hasChild(SbmlTags.RIS_TITLE))
             {
-                XMLNode titleNode = node.getChild(spec.getTitle());
-                string title = titleNode.getChild(0).getCharacters();
-                reference.setTitle(title);
+                XMLNode titleNode = node.getChild(SbmlTags.RIS_TITLE);
+                reference.title = titleNode.getChild(0).getCharacters();
             }
 
             // abstract text
-            if (node.hasChild(spec.getAbstract()))
+            if (node.hasChild(SbmlTags.RIS_ABSTRACT))
             {
-                XMLNode abstractNode = node.getChild(spec.getAbstract());
-                string abstractText = abstractNode.getChild(0).getCharacters();
-                reference.setAbstractText(abstractText);
+                XMLNode abstractNode = node.getChild(SbmlTags.RIS_ABSTRACT);
+                reference.abstractText = abstractNode.getChild(0).getCharacters();
             }
 
             // year
-            if (node.hasChild(spec.getYear()))
+            if (node.hasChild(SbmlTags.RIS_YEAR))
             {
-                XMLNode yearNode = node.getChild(spec.getYear());
-                int year = int.Parse(yearNode.getChild(0).getCharacters());
-                reference.setYear(year);
+                XMLNode yearNode = node.getChild(SbmlTags.RIS_YEAR);
+                reference.year = int.Parse(yearNode.getChild(0).getCharacters());
             }
 
             // journal
-            if (node.hasChild(spec.getJournal()))
+            if (node.hasChild(SbmlTags.RIS_JOURNAL))
             {
-                XMLNode journalNode = node.getChild(spec.getJournal());
-                string journal = journalNode.getChild(0).getCharacters();
-                reference.setJournal(journal);
+                XMLNode journalNode = node.getChild(SbmlTags.RIS_JOURNAL);
+                reference.journal = journalNode.getChild(0).getCharacters();
             }
 
             // volume
-            if (node.hasChild(spec.getVolume()))
+            if (node.hasChild(SbmlTags.RIS_VOLUME))
             {
-                XMLNode volumeNode = node.getChild(spec.getVolume());
-                string volume = volumeNode.getChild(0).getCharacters();
-                reference.setVolume(volume);
+                XMLNode volumeNode = node.getChild(SbmlTags.RIS_VOLUME);
+                reference.volume = volumeNode.getChild(0).getCharacters();
             }
 
             // issue
-            if (node.hasChild(spec.getIssue()))
+            if (node.hasChild(SbmlTags.RIS_ISSUE))
             {
-                XMLNode issueNode = node.getChild(spec.getIssue());
-                string issue = issueNode.getChild(0).getCharacters();
-                reference.setIssue(issue);
+                XMLNode issueNode = node.getChild(SbmlTags.RIS_ISSUE);
+                reference.issue = issueNode.getChild(0).getCharacters();
             }
 
             // page
-            if (node.hasChild(spec.getPage()))
+            if (node.hasChild(SbmlTags.RIS_PAGE))
             {
-                XMLNode pageNode = node.getChild(spec.getPage());
-                int page = int.Parse(pageNode.getChild(0).getCharacters());
-                reference.setPage(page);
+                XMLNode pageNode = node.getChild(SbmlTags.RIS_PAGE);
+                reference.page = int.Parse(pageNode.getChild(0).getCharacters());
             }
 
             // approval mode
-            if (node.hasChild(spec.getApproval()))
+            if (node.hasChild(SbmlTags.RIS_APPROVAL))
             {
-                XMLNode approvalNode = node.getChild(spec.getApproval());
-                int approval = int.Parse(approvalNode.getChild(0).getCharacters());
-                reference.setApprovalMode(approval);
+                XMLNode approvalNode = node.getChild(SbmlTags.RIS_APPROVAL);
+                reference.approvalMode = int.Parse(approvalNode.getChild(0).getCharacters());
             }
 
             // website
-            if (node.hasChild(spec.getWebsite()))
+            if (node.hasChild(SbmlTags.RIS_WEBSITE))
             {
-                XMLNode websiteNode = node.getChild(spec.getWebsite());
-                string website = websiteNode.getChild(0).getCharacters();
-                reference.setWebsite(website);
+                XMLNode websiteNode = node.getChild(SbmlTags.RIS_WEBSITE);
+                reference.website = websiteNode.getChild(0).getCharacters();
             }
 
             // type
-            if (node.hasChild(spec.getType()))
+            if (node.hasChild(SbmlTags.RIS_TYPE))
             {
-                XMLNode typeNode = node.getChild(spec.getType());
+                XMLNode typeNode = node.getChild(SbmlTags.RIS_TYPE);
                 string typeAsString = typeNode.getChild(0).getCharacters();
                 if (typeAsString.Equals("paper"))
                 {
-                    reference.setType(ReferenceType.Paper);
+                    reference.type = ReferenceType.Paper;
                 }
                 else if (typeAsString.Equals("sop"))
                 {
-                    reference.setType(ReferenceType.SOP);
+                    reference.type = ReferenceType.SOP;
                 }
                 else if (typeAsString.Equals("la"))
                 {
-                    reference.setType(ReferenceType.LA);
+                    reference.type = ReferenceType.LA;
                 }
                 else if (typeAsString.Equals("handbuch"))
                 {
-                    reference.setType(ReferenceType.Handbuch);
+                    reference.type = ReferenceType.Handbuch;
                 }
                 else if (typeAsString.Equals("laborbuch"))
                 {
-                    reference.setType(ReferenceType.Laborbuch);
+                    reference.type = ReferenceType.Laborbuch;
                 }
                 else if (typeAsString.Equals("buch"))
                 {
-                    reference.setType(ReferenceType.Buch);
+                    reference.type = ReferenceType.Buch;
                 }
                 else if (typeAsString.Equals("berich"))
                 {
-                    reference.setType(ReferenceType.Berich);
+                    reference.type = ReferenceType.Berich;
                 }
             }
 
             // comment
-            if (node.hasChild(spec.getComment()))
+            if (node.hasChild(SbmlTags.RIS_COMMENT))
             {
-                XMLNode commentNode = node.getChild(spec.getComment());
-                string comment = commentNode.getChild(0).getCharacters();
-                reference.setComment(comment);
+                XMLNode commentNode = node.getChild(SbmlTags.RIS_COMMENT);
+                reference.comment = commentNode.getChild(0).getCharacters();
             }
 
             return reference;
         }
-
-        public XMLNode getNode() { return node; }
-    }
-
-    public class RIS : LiteratureSpecificationI
-    {
-        public string getAuthor() { return "AU"; }
-        public string getYear() { return "PY"; }
-        public string getTitle() { return "TI"; }
-        public string getAbstract() { return "AB"; }
-        public string getJournal() { return "T2"; }
-        public string getVolume() { return "VL"; }
-        public string getIssue() { return "IS"; }
-        public string getPage() { return "SP"; }
-        public string getApproval() { return "LB"; }
-        public string getWebsite() { return "UR"; }
-        public string getType() { return "M3"; }
-        public string getComment() { return "N1"; }
     }
 
     public class SBMLFactory
     {
         public static Metadata createMetadata()
         {
-            return new MetadataImpl();
+            return new Metadata();
         }
 
         public static Metadata createMetadata(string givenName,
@@ -2206,57 +1565,65 @@ namespace pmfml_cs.sbml
             string modifiedDate, ModelType type, string rights,
             string referenceLink)
         {
-            return new MetadataImpl(givenName, familyName, contact,
-                createdDate, modifiedDate, type, rights,
-                referenceLink);
+            Metadata metadata = new Metadata();
+            metadata.givenName = givenName;
+            metadata.familyName = familyName;
+            metadata.contact = contact;
+            metadata.createdDate = createdDate;
+            metadata.modifiedDate = modifiedDate;
+            metadata.type = type;
+            metadata.rights = rights;
+            metadata.referenceLink = referenceLink;
+
+            return metadata;
         }
 
-        public static PMFCoefficient createPMFCoefficient(Parameter parameter)
+        public static PmfCoefficient createPMFCoefficient(Parameter parameter)
         {
-            return new PMFCoefficientImpl(parameter);
+            return new PmfCoefficient(parameter);
         }
 
-        public static PMFCoefficient createPMFCoefficient(string id,
+        public static PmfCoefficient createPMFCoefficient(string id,
             double value, string unit, double p, double error, double t,
             List<Correlation> correlations, string desc, bool isStart)
         {
-            return new PMFCoefficientImpl(id, value, unit, p, error, t,
+            return new PmfCoefficient(id, value, unit, p, error, t,
                 correlations, desc, isStart);
         }
 
-        public static PMFCompartment createPMFCompartment(Compartment compartment)
+        public static PmfCompartment createPMFCompartment(Compartment compartment)
         {
-            return new PMFCompartmentImpl(compartment);
+            return new PmfCompartment(compartment);
         }
 
-        public static PMFCompartment createPMFCompartment(string id, string name,
+        public static PmfCompartment createPMFCompartment(string id, string name,
             string pmfCode, string detail, List<ModelVariable> modelVariables)
         {
-            return new PMFCompartmentImpl(id, name, pmfCode, detail, modelVariables);
+            return new PmfCompartment(id, name, pmfCode, detail, modelVariables);
         }
 
-        public static PMFCompartment createPMFCompartment(string id, string name)
+        public static PmfCompartment createPMFCompartment(string id, string name)
         {
-            return new PMFCompartmentImpl(id, name);
+            return new PmfCompartment(id, name);
         }
 
-        public static PMFSpecies createPMFSpecies(Species species)
+        public static PmfSpecies createPMFSpecies(Species species)
         {
-            return new PMFSpeciesImpl(species);
+            return new PmfSpecies(species);
         }
 
-        public static PMFSpecies createPMFSpecies(string compartment, string id,
+        public static PmfSpecies createPMFSpecies(string compartment, string id,
             string name, string substanceUnits, string combaseCode,
             string detail, string description)
         {
-            return new PMFSpeciesImpl(compartment, id, name, substanceUnits,
+            return new PmfSpecies(compartment, id, name, substanceUnits,
                 combaseCode, detail, description);
         }
 
-        public static PMFSpecies createPMFSpecies(string compartment,
+        public static PmfSpecies createPMFSpecies(string compartment,
             string id, string name, string substanceUnits)
         {
-            return new PMFSpeciesImpl(compartment, id, name, substanceUnits);
+            return new PmfSpecies(compartment, id, name, substanceUnits);
         }
 
         /* A parametrized createReference (like in the Java library) does not
@@ -2266,7 +1633,7 @@ namespace pmfml_cs.sbml
          */
         public static Reference createReference()
         {
-            return new ReferenceImpl();
+            return new Reference();
         }
 
         // Same as with createReference
