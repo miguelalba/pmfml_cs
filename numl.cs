@@ -25,21 +25,16 @@ namespace pmfml_cs.numl
     public static class NuMLTags
     {
         // Element names
-        public static string ANNOTATION = "annotation";
         public static string ATOMIC_DESCRIPTION = "atomicDescription";
         public static string ATOMIC_VALUE = "atomicValue";
         public static string CONCENTRATION_ONTOLOGY = "ontologyTerm";
         public static string COMPARTMENT = "sbml:compartment";
-        public static string METADATA = "pmf:metadata";
         public static string SPECIES = "sbml:species";
         public static string UNIT_DEFINITION = "sbml:unitDefinition";
         public static string UNIT = "sbml:unit";
         public static string TIME_ONTOLOGY = "ontologyTerm";
         public static string TUPLE = "tuple";
         public static string TUPLE_DESCRIPTION = "tupleDescription";
-        public static string REFERENCE = "dc:reference";
-        public static string RESULT_COMPONENT = "resultComponent";
-        public static string TRANSFORMATION = "pmf:transformation";
 
         // Unit attributes
         public static string EXPONENT_ATTR = "exponent";
@@ -52,27 +47,16 @@ namespace pmfml_cs.numl
         public static string TERM = "term";
         public static string SOURCE_TERM_ID = "sourceTermId";
         public static string URI = "ontologyURI";
-
-        // Species attributes
-        public static string BOUNDARY_CONDITION_ATTR = "boundaryCondition";
-        public static string COMPARTMENT_ATTR = "compartment";
-        public static string CONSTANT_ATTR = "constant";
-        public static string HAS_ONLY_SUBSTANCE_ATTR = "hasOnlySubstanceUnits";
-        public static string SUBSTANCE_UNITS_ATTR = "substanceUnits";
-
-        // SBase attributes
-        public static string ID_ATTR = "id";
-        public static string NAME_ATTR = "name";
-
-        // AtomicDescription attributes
-        public static string ONTOLOGY_TERM_ATTR = "ontologyTerm";
-        public static string VALUE_TYPE_ATTR = "valueType";
     }
 
     public class AtomicDescription
     {
-        public string name { get; }
-        public string ontologyTermId { get; }
+        private static string NAME = "name";
+        private static string ONTOLOGY_TERM = "ontologyTerm";
+        private static string VALUE_TYPE = "valueType";
+
+        private string name;
+        private string ontologyTermId;
         public static DataType valueType = DataType.DOUBLE;
 
         public AtomicDescription(string name, string ontologyTermId)
@@ -84,9 +68,12 @@ namespace pmfml_cs.numl
         public AtomicDescription(XmlElement node)
         {
             XmlAttributeCollection attributes = node.Attributes;
-            name = node.Attributes[NuMLTags.NAME_ATTR].Value;
-            ontologyTermId = node.Attributes[NuMLTags.ONTOLOGY_TERM_ATTR].Value;
+            name = node.Attributes[NAME].Value;
+            valueType = node.Attributes[ONTOLOGY_TERM].Value;
         }
+
+        public string getName() { return name; }
+        public string getOntologyTermId() { return ontologyTermId; }
 
         // TODO: ToString
         // TODO: Equals
@@ -94,10 +81,10 @@ namespace pmfml_cs.numl
         public XmlElement ToNode(XmlDocument doc)
         {
             XmlElement node = doc.CreateElement(NuMLTags.ATOMIC_DESCRIPTION);
-            node.SetAttribute(NuMLTags.NAME_ATTR, name);
-            node.SetAttribute(NuMLTags.ONTOLOGY_TERM_ATTR, ontologyTermId);
+            node.SetAttribute(NAME, name);
+            node.SetAttribute(ONTOLOGY_TERM, ontologyTermId);
             // TODO: check once VALUE_TYPE is implemented
-            node.SetAttribute(NuMLTags.VALUE_TYPE_ATTR, valueType.name());
+            node.SetAttribute(VALUE_TYPE, valueType.name());
 
             return node;
         }
@@ -105,7 +92,7 @@ namespace pmfml_cs.numl
 
     public class AtomicValue
     {
-        public double value { get; }
+        private double value;
 
         public AtomicValue(double value)
         {
@@ -116,6 +103,8 @@ namespace pmfml_cs.numl
         {
             value = double.Parse(node.InnerText);
         }
+
+        public double getValue() { return value; }
 
         // TODO: ToString
         // TODO: Equals
@@ -129,16 +118,23 @@ namespace pmfml_cs.numl
         }
     }
 
+    /* ConcentrationOntology
+     * - ConcentrationOntology
+     * - CompartmentNuMLNode
+     * - SpeciesNuMLNode
+     */
     public class ConcentrationOntology
     {
+        private static string ANNOTATION = "annotation";
+
         public static string ID = "concentration";
         public static string TERM = "concentration";
         public static string SOURCE_TERM_ID = "SBO:0000196";
         public static string URI = "http://www.ebi.ac.uk/sbo/";
 
-        public PMFUnitDefinition unitDefinition { get; }
-        public PMFCompartment compartment { get; }
-        public PMFSpecies species { get; }
+        private PMFUnitDefinition unitDefinition;
+        private PMFCompartment compartment;
+        private PMFSpecies species;
 
         public ConcentrationOntology(PMFUnitDefinition unitDefinition,
             PMFCompartment compartment, PMFSpecies species)
@@ -150,23 +146,27 @@ namespace pmfml_cs.numl
 
         public ConcentrationOntology(XmlNode node)
         {
-            XmlNode annotationNode = node.SelectSingleNode(NuMLTags.ANNOTATION);
+            XmlNode annotationNode = node.SelectSingleNode(ANNOTATION);
 
             // retrieves unitDefinition
-            XmlElement unitNode = (XmlElement) annotationNode.SelectSingleNode(NuMLTags.UNIT_DEFINITION);
+            XmlNode unitNode = annotationNode.SelectSingleNode(UnitDefinitionNuMLNode.TAG);
             UnitDefinitionNuMLNode unitNuMLNode = new UnitDefinitionNuMLNode(unitNode);
-            unitDefinition = unitNuMLNode.ToPMFUnitDefinition();
+            unitDefinition = unitNuMLNode.ToPmfUnitDefinition();
 
             // retrieves compartment
-            XmlElement compartmentNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.COMPARTMENT);
+            XmlNode compartmentNode = annotationNode.SelectSingleNode(CompartmentNuMLNode.TAG);
             CompartmentNuMLNode compartmentNuMLNode = new CompartmentNuMLNode(compartmentNode);
-            compartment = compartmentNuMLNode.ToPMFCompartment();
+            compartment = compartmentNuMLNode.ToPmfCompartment();
 
             // retrieves species
-            XmlElement speciesNode = (XmlElement) annotationNode.SelectSingleNode(NuMLTags.SPECIES);
+            XmlNode speciesNode = annotationNode.SelectSingleNode(SpeciesNuMLNode.TAG);
             SpeciesNuMLNode speciesNuMLNode = new SpeciesNuMLNode(speciesNode);
-            species = speciesNuMLNode.toPMFSpecies();
+            species = speciesNuMLNode.ToPmfSpecies();
         }
+
+        public PMFUnitDefinition getUnitDefinition() { return unitDefinition; }
+        public PMFCompartment getCompartment() { return compartment; }
+        public PMFSpecies getSpecies() { return species; }
 
         // TODO: toString
         // TODO: Equals
@@ -179,17 +179,17 @@ namespace pmfml_cs.numl
             node.SetAttribute(NuMLTags.SOURCE_TERM_ID, SOURCE_TERM_ID);
             node.SetAttribute(NuMLTags.URI, URI);
 
-            XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
+            XmlElement annotation = doc.CreateElement(ANNOTATION);
             node.AppendChild(annotation);
 
             // Creates UnitDefinitionNuMLNode and adds it to the annotation
-            annotation.AppendChild(new UnitDefinitionNuMLNode(unitDefinition, doc).element);
+            annotation.AppendChild(new UnitDefinitionNuMLNode(unitDefinition, doc).node);
 
             // Creates CompartmentNuMLNode and adds it to the annotation
-            annotation.AppendChild(new CompartmentNuMLNode(compartment, doc).element);
+            annotation.AppendChild(new CompartmentNuMLNode(compartment, doc).node);
 
             // Creates SpeciesNuMLNode and adds it to the annotation
-            annotation.AppendChild(new SpeciesNuMLNode(species, doc).element);
+            annotation.AppendChild(new SpeciesNuMLNode(species, doc).node);
 
             return node;
         }
@@ -197,25 +197,31 @@ namespace pmfml_cs.numl
 
     class CompartmentNuMLNode
     {
+        private static string ANNOTATION = "annotation";
+        private static string METADATA = "pmf:metadata";
+
         private static string SOURCE_TAG = "dc:source";
         private static string DETAIL_TAG = "pmmlab:detail";
         private static string VARIABLE_TAG = "pmmlab:modelVariable";
 
-        public XmlElement element { get; }
+        private static string ID_ATTR = "id";
+        private static string NAME_ATTR = "name";
+
+        XmlElement element;
 
         public CompartmentNuMLNode(PMFCompartment compartment, XmlDocument doc)
         {
             element = doc.CreateElement(NuMLTags.COMPARTMENT);
-            element.SetAttribute(NuMLTags.ID_ATTR, compartment.getId());
-            element.SetAttribute(NuMLTags.NAME_ATTR, compartment.getName());
+            element.SetAttribute(ID_ATTR, compartment.getId());
+            element.SetAttribute(NAME_ATTR, compartment.getName());
 
             if (compartment.isSetPmfCode() || compartment.isSetDetail()
                 || compartment.isSetModelVariables())
             {
-                XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
+                XmlElement annotation = doc.CreateElement(ANNOTATION);
                 element.AppendChild(annotation);
 
-                XmlElement metadata = doc.CreateElement(NuMLTags.METADATA);
+                XmlElement metadata = doc.CreateElement(METADATA);
                 annotation.AppendChild(metadata);
 
                 if (compartment.isSetPmfCode())
@@ -247,25 +253,18 @@ namespace pmfml_cs.numl
                 }
             }
         }
-
-        public CompartmentNuMLNode(XmlElement element)
+        public PMFCompartment toPMFCompartment()
         {
-            this.element = element;
-        }
+            string id = element.Attributes[ID_ATTR].Value;
+            string name = element.Attributes[NAME_ATTR].Value;
 
-
-        public PMFCompartment ToPMFCompartment()
-        {
-            string id = element.Attributes[NuMLTags.ID_ATTR].Value;
-            string name = element.Attributes[NuMLTags.NAME_ATTR].Value;
-
-            XmlElement annotationElement = (XmlElement)element.SelectSingleNode(NuMLTags.ANNOTATION);
+            XmlElement annotationElement = (XmlElement)element.SelectSingleNode(ANNOTATION);
             if (annotationElement == null)
             {
                 return SBMLFactory.createPMFCompartment(id, name);
             }
 
-            XmlElement metadataNode = (XmlElement)annotationElement.SelectSingleNode(NuMLTags.METADATA);
+            XmlElement metadataNode = (XmlElement)annotationElement.SelectSingleNode(METADATA);
 
             XmlElement pmfCodeNode = (XmlElement)metadataNode.SelectSingleNode(SOURCE_TAG);
             string pmfCode = pmfCodeNode == null ? "" : pmfCodeNode.InnerText;
@@ -301,28 +300,39 @@ namespace pmfml_cs.numl
 
     class SpeciesNuMLNode
     {
+        private static string ANNOTATION = "annotation";
+        private static string METADATA = "pmf:metadata";
+
+        private static string BOUNDARY_CONDITION_ATTR = "boundaryCondition";
+        private static string COMPARTMENT_ATTR = "compartment";
+        private static string CONSTANT_ATTR = "constant";
+        private static string HAS_ONLY_SUBSTANCE_UNITS_ATTR = "hasOnlySubstanceUnits";
+        private static string ID_ATTR = "id";
+        private static string NAME_ATTR = "name";
+        private static string SUBSTANCE_UNITS_ATTR = "substanceUnits";
+
         private static string SOURCE_TAG = "dc:source";
         private static string DETAIL_TAG = "pmmlab:detail";
         private static string DESCRIPTION_TAG = "pmmlab:description";
 
-        public XmlElement element;
+        XmlElement element;
 
         public SpeciesNuMLNode(PMFSpecies species, XmlDocument doc)
         {
             element = doc.CreateElement(NuMLTags.SPECIES);
-            element.SetAttribute(NuMLTags.BOUNDARY_CONDITION_ATTR, PMFSpeciesImpl.BOUNDARY_CONDITION.ToString());
-            element.SetAttribute(NuMLTags.HAS_ONLY_SUBSTANCE_ATTR, PMFSpeciesImpl.ONLY_SUBSTANCE_UNITS.ToString());
-            element.SetAttribute(NuMLTags.COMPARTMENT_ATTR, species.getCompartment());
-            element.SetAttribute(NuMLTags.ID_ATTR, species.getId());
-            element.SetAttribute(NuMLTags.NAME_ATTR, species.getName());
-            element.SetAttribute(NuMLTags.SUBSTANCE_UNITS_ATTR, species.getUnits());
+            element.SetAttribute(BOUNDARY_CONDITION_ATTR, PMFSpeciesImpl.BOUNDARY_CONDITION.ToString());
+            element.SetAttribute(HAS_ONLY_SUBSTANCE_UNITS_ATTR, PMFSpeciesImpl.ONLY_SUBSTANCE_UNITS.ToString());
+            element.SetAttribute(COMPARTMENT_ATTR, species.getCompartment());
+            element.SetAttribute(ID_ATTR, species.getId());
+            element.SetAttribute(NAME_ATTR, species.getName());
+            element.SetAttribute(SUBSTANCE_UNITS_ATTR, species.getUnits());
 
             if (species.isSetCombaseCode() || species.isSetDetail() || species.isSetDescription())
             {
-                XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
+                XmlElement annotation = doc.CreateElement(ANNOTATION);
                 element.AppendChild(annotation);
 
-                XmlElement metadata = doc.CreateElement(NuMLTags.METADATA);
+                XmlElement metadata = doc.CreateElement(METADATA);
                 annotation.AppendChild(metadata);
 
                 if (species.isSetCombaseCode())
@@ -355,17 +365,17 @@ namespace pmfml_cs.numl
 
         public PMFSpecies toPMFSpecies()
         {
-            string id = element.GetAttribute(NuMLTags.ID_ATTR);
-            string name = element.GetAttribute(NuMLTags.NAME_ATTR);
-            string compartment = element.GetAttribute(NuMLTags.COMPARTMENT_ATTR);
-            string substanceUnits = element.GetAttribute(NuMLTags.SUBSTANCE_UNITS_ATTR);
+            string id = element.GetAttribute(ID_ATTR);
+            string name = element.GetAttribute(NAME_ATTR);
+            string compartment = element.GetAttribute(COMPARTMENT_ATTR);
+            string substanceUnits = element.GetAttribute(SUBSTANCE_UNITS_ATTR);
             PMFSpecies species = SBMLFactory.createPMFSpecies(compartment, id, name, substanceUnits);
 
-            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(NuMLTags.ANNOTATION);
+            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(ANNOTATION);
             if (annotationNode != null)
             {
                 // metadata
-                XmlElement metadataNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.METADATA);
+                XmlElement metadataNode = (XmlElement)annotationNode.SelectSingleNode(METADATA);
 
                 // combase code
                 XmlElement combaseCodeNode = (XmlElement)metadataNode.SelectSingleNode(SOURCE_TAG);
@@ -398,9 +408,14 @@ namespace pmfml_cs.numl
     // NuMLDocument
     // NuMLReader
     // NuMLWriter
+    // ResultComponent
 
     public class ResultComponent
     {
+        static string ELEMENT_NAME = "resultComponent";  // TODO: NuMLTags
+        private static string ANNOTATION = "annotation";  // TODO: NuMLTags
+        private static string METADATA = "metadata";  // TODO: NuMLTags
+
         private static string ID = "id";
         private static string CONDID = "pmmlab:condID";
         private static string COMBASEID = "pmmlab:combaseID";
@@ -428,14 +443,14 @@ namespace pmfml_cs.numl
         public List<Reference> references { get; set; }
         public TupleDescription tupleDescription { get; set; }
         public List<Tuple> dimensions { get; set; }
-        public string notes { get; set; }
 
+        // Constructors ...
         public ResultComponent() { }
 
         public ResultComponent(XmlElement element)
         {
-            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(NuMLTags.ANNOTATION);
-            XmlElement metadataNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.METADATA);
+            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(ANNOTATION);
+            XmlElement metadataNode = (XmlElement)annotationNode.SelectSingleNode(METADATA);
 
             // condId
             XmlElement condIdNode = (XmlElement)metadataNode.SelectSingleNode(CONDID);
@@ -496,12 +511,12 @@ namespace pmfml_cs.numl
             }
 
             // references
-            XmlNodeList refNodes = metadataNode.GetElementsByTagName(NuMLTags.REFERENCE);
+            XmlNodeList refNodes = metadataNode.GetElementsByTagName(ReferenceNuMLNode.TAG);
             references = new List<Reference>(refNodes.Count);
             for (int i = 0; i < refNodes.Count; i++)
             {
                 XmlElement refElement = (XmlElement)refNodes.Item(i);
-                references.Add(new ReferenceNuMLNode(refElement).toReference());
+                references.Add(new ReferenceNuMLNode(refElement).ToReference());
             }
 
             // tuple description
@@ -523,279 +538,12 @@ namespace pmfml_cs.numl
         // TODO: Equals
 
         // TODO: ToNode
-        public XmlElement ToNode(XmlDocument doc)
-        {
-            XmlElement element = doc.CreateElement(NuMLTags.RESULT_COMPONENT);
-            element.SetAttribute(ID, id);
-
-            XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
-            element.AppendChild(annotation);
-
-            XmlElement metadata = doc.CreateElement(NuMLTags.METADATA);
-            element.AppendChild(metadata);
-
-            if (condId.HasValue)
-            {
-                XmlElement condIdNode = doc.CreateElement(CONDID);
-                condIdNode.InnerText = condId.ToString();
-                metadata.AppendChild(condIdNode);
-            }
-
-            if (!string.IsNullOrEmpty(combaseId))
-            {
-                XmlElement combaseIdNode = doc.CreateElement(COMBASEID);
-                combaseIdNode.InnerText = combaseId;
-                metadata.AppendChild(combaseIdNode);
-            }
-
-            if (!string.IsNullOrEmpty(creatorGivenName))
-            {
-                XmlElement creatorGivenNameNode = doc.CreateElement(CREATOR_GIVEN_NAME);
-                creatorGivenNameNode.InnerText = creatorGivenName;
-                metadata.AppendChild(creatorGivenNameNode);
-            }
-
-            if (!string.IsNullOrEmpty(creatorFamilyName))
-            {
-                XmlElement creatorFamilyNameNode = doc.CreateElement(CREATOR_FAMILY_NAME);
-                creatorFamilyNameNode.InnerText = creatorFamilyName;
-                metadata.AppendChild(creatorFamilyNameNode);
-            }
-
-            if (!string.IsNullOrEmpty(createdDate))
-            {
-                XmlElement createdDateNode = doc.CreateElement(CREATED_DATE);
-                createdDateNode.InnerText = createdDate;
-                metadata.AppendChild(createdDateNode);
-            }
-
-            if (!string.IsNullOrEmpty(modifiedDate))
-            {
-                XmlElement modifiedDateNode = doc.CreateElement(MODIFIED_DATE);
-                modifiedDateNode.InnerText = modifiedDate;
-                metadata.AppendChild(modifiedDateNode);
-            }
-
-            // TODO: model type
-
-            if (!string.IsNullOrEmpty(rights))
-            {
-                XmlElement rightsNode = doc.CreateElement(RIGHTS);
-                rightsNode.InnerText = rights;
-                metadata.AppendChild(rightsNode);
-            }
-
-            if (!string.IsNullOrEmpty(notes))
-            {
-                XmlElement notesNode = doc.CreateElement("notes");
-                notesNode.InnerText = notes;
-                metadata.AppendChild(notesNode);
-            }
-
-            if (references.Count != 0)
-            {
-                foreach (Reference r in references)
-                {
-                    metadata.AppendChild(new ReferenceNuMLNode(r, doc).element);
-                }
-            }
-
-            XmlElement dimDescNode = doc.CreateElement(DIMENSION_DESCRIPTION);
-            dimDescNode.AppendChild(tupleDescription.toNode(doc));
-            element.AppendChild(dimDescNode);
-
-            XmlElement dimNode = doc.CreateElement(DIMENSION);
-            foreach (Tuple tuple in dimensions)
-            {
-                dimNode.AppendChild(tuple.toNode(doc));
-            }
-            element.AppendChild(dimNode);
-
-            return element;
-        }
-    }
-
-    class ReferenceNuMLNode
-    {
-        private static LiteratureSpecificationI SPEC = new RIS();
-        private static string DC_URI = "http://purl.org/dc/elements/1.1/";
-
-        public XmlElement element { get; }
-
-        public ReferenceNuMLNode(Reference reference, XmlDocument doc)
-        {
-
-            element = doc.CreateElement(DC_URI, NuMLTags.REFERENCE);
-
-            if (reference.isSetAuthor())
-            {
-                XmlElement authorNode = doc.CreateElement(SPEC.getAuthor());
-                authorNode.InnerText = reference.getAuthor();
-                element.AppendChild(authorNode);
-            }
-
-            if (reference.isSetYear())
-            {
-                XmlElement yearNode = doc.CreateElement(SPEC.getYear());
-                yearNode.InnerText = reference.getYear().ToString();
-                element.AppendChild(yearNode);
-            }
-
-            if (reference.isSetTitle())
-            {
-                XmlElement titleNode = doc.CreateElement(SPEC.getTitle());
-                titleNode.InnerText = reference.getTitle();
-                element.AppendChild(titleNode);
-            }
-
-            if (reference.isSetAbstractText())
-            {
-                XmlElement abstractNode = doc.CreateElement(SPEC.getAbstract());
-                abstractNode.InnerText = reference.getAbstractText();
-                element.AppendChild(abstractNode);
-            }
-
-            if (reference.isSetJournal())
-            {
-                XmlElement journalNode = doc.CreateElement(SPEC.getJournal());
-                journalNode.InnerText = reference.getJournal();
-                element.AppendChild(journalNode);
-            }
-
-            if (reference.isSetVolume())
-            {
-                XmlElement volumeNode = doc.CreateElement(SPEC.getVolume());
-                volumeNode.InnerText = reference.getVolume();
-                element.AppendChild(volumeNode);
-            }
-
-            if (reference.isSetIssue())
-            {
-                XmlElement issueNode = doc.CreateElement(SPEC.getIssue());
-                issueNode.InnerText = reference.getIssue();
-                element.AppendChild(issueNode);
-            }
-
-            if (reference.isSetPage())
-            {
-                XmlElement pageNode = doc.CreateElement(SPEC.getPage());
-                pageNode.InnerText = reference.getPage().ToString();
-                element.AppendChild(pageNode);
-            }
-
-            if (reference.isSetApprovalMode())
-            {
-                XmlElement approvalNode = doc.CreateElement(SPEC.getApproval());
-                approvalNode.InnerText = reference.getApprovalMode().ToString();
-                element.AppendChild(approvalNode);
-            }
-
-            if (reference.isSetWebsite())
-            {
-                XmlElement websiteNode = doc.CreateElement(SPEC.getWebsite());
-                websiteNode.InnerText = reference.getWebsite();
-                element.AppendChild(websiteNode);
-            }
-
-            if (reference.isSetType())
-            {
-                XmlElement typeNode = doc.CreateElement(SPEC.getType());
-                typeNode.InnerText = reference.getType().ToString();
-                element.AppendChild(typeNode);
-            }
-
-            if (reference.isSetComment())
-            {
-                XmlElement commentNode = doc.CreateElement(SPEC.getComment());
-                commentNode.InnerText = reference.getComment();
-                element.AppendChild(commentNode);
-            }
-        }
-
-        public ReferenceNuMLNode(XmlElement element)
-        {
-            this.element = element;
-        }
-
-        public Reference toReference()
-        {
-            Reference reference = new ReferenceImpl();
-
-            XmlElement authorNode = (XmlElement)element.SelectSingleNode(SPEC.getAuthor());
-            if (authorNode != null)
-            {
-                reference.setAuthor(authorNode.InnerText);
-            }
-
-            XmlElement titleNode = (XmlElement)element.SelectSingleNode(SPEC.getTitle());
-            if (titleNode != null)
-            {
-                reference.setTitle(titleNode.InnerText);
-            }
-
-            XmlElement abstractNode = (XmlElement)element.SelectSingleNode(SPEC.getAbstract());
-            if (abstractNode != null)
-            {
-                reference.setAbstractText(abstractNode.InnerText);
-            }
-
-            XmlElement yearNode = (XmlElement)element.SelectSingleNode(SPEC.getYear());
-            if (yearNode != null)
-            {
-                reference.setYear(int.Parse(yearNode.InnerText));
-            }
-
-            XmlElement journalNode = (XmlElement)element.SelectSingleNode(SPEC.getJournal());
-            if (journalNode != null)
-            {
-                reference.setJournal(journalNode.InnerText);
-            }
-
-            XmlElement volumeNode = (XmlElement)element.SelectSingleNode(SPEC.getVolume());
-            if (volumeNode != null)
-            {
-                reference.setVolume(volumeNode.InnerText);
-            }
-
-            XmlElement issueNode = (XmlElement)element.SelectSingleNode(SPEC.getIssue());
-            if (issueNode != null)
-            {
-                reference.setIssue(issueNode.InnerText);
-            }
-
-            XmlElement pageNode = (XmlElement)element.SelectSingleNode(SPEC.getPage());
-            if (pageNode != null)
-            {
-                reference.setPage(int.Parse(pageNode.InnerText));
-            }
-
-            XmlElement approvalNode = (XmlElement)element.SelectSingleNode(SPEC.getApproval());
-            if (approvalNode != null)
-            {
-                reference.setApprovalMode(int.Parse(approvalNode.InnerText));
-            }
-
-            XmlElement websiteNode = (XmlElement)element.SelectSingleNode(SPEC.getWebsite());
-            if (websiteNode != null)
-            {
-                reference.setWebsite(websiteNode.InnerText);
-            }
-
-            // TODO: type
-
-            // comment
-            XmlElement commentNode = (XmlElement)element.SelectSingleNode(SPEC.getComment());
-            if (commentNode != null)
-            {
-                reference.setComment(commentNode.InnerText);
-            }
-
-            return reference;
-        }
     }
 
     public class TimeOntology
     {
+        private static string ANNOTATION = "annotation";  // TODO: NuMLTags
+
         // TimeOntology constants
         public static string ID = "time";
         public static string TERM = "time";
@@ -811,9 +559,9 @@ namespace pmfml_cs.numl
 
         public TimeOntology(XmlElement element)
         {
-            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(NuMLTags.ANNOTATION);
+            XmlElement annotationNode = (XmlElement)element.SelectSingleNode(ANNOTATION);
             XmlElement unitNode = (XmlElement)annotationNode.SelectSingleNode(NuMLTags.UNIT_DEFINITION);
-            unitDefinition = new UnitDefinitionNuMLNode(unitNode).ToPMFUnitDefinition();
+            unitDefinition = new UnitDefinitionNuMLNode(unitNode).toPMFUnitDefinition();
         }
 
         public PMFUnitDefinition getUnitDefinition() { return unitDefinition; }
@@ -829,10 +577,10 @@ namespace pmfml_cs.numl
             element.SetAttribute(NuMLTags.SOURCE_TERM_ID, SOURCE_TERM_ID);
             element.SetAttribute(NuMLTags.URI, URI);
 
-            XmlElement annotation = doc.CreateElement(NuMLTags.ANNOTATION);
+            XmlElement annotation = doc.CreateElement(ANNOTATION);
             element.AppendChild(annotation);
 
-            annotation.AppendChild(new UnitDefinitionNuMLNode(unitDefinition, doc).element);
+            annotation.AppendChild(new UnitDefinitionNuMLNode(unitDefinition, doc).node);
 
             return element;
         }
@@ -840,8 +588,8 @@ namespace pmfml_cs.numl
 
     public class Tuple
     {
-        public AtomicValue concValue { get; }
-        public AtomicValue timeValue { get; }
+        AtomicValue concValue;
+        AtomicValue timeValue;
 
         public Tuple(AtomicValue concValue, AtomicValue timeValue)
         {
@@ -854,6 +602,9 @@ namespace pmfml_cs.numl
             concValue = new AtomicValue((XmlElement)element.ChildNodes[0]);
             timeValue = new AtomicValue((XmlElement)element.ChildNodes[1]);
         }
+
+        public AtomicValue getConcValue() { return concValue; }
+        public AtomicValue getTimeValue() { return timeValue; }
 
         // TODO: ToString
         // TODO: Equals
@@ -870,8 +621,8 @@ namespace pmfml_cs.numl
 
     public class TupleDescription
     {
-        public AtomicDescription concDesc { get; }
-        public AtomicDescription timeDesc { get; }
+        AtomicDescription concDesc;
+        AtomicDescription timeDesc;
 
         public TupleDescription(AtomicDescription concDesc, AtomicDescription timeDesc)
         {
@@ -885,6 +636,9 @@ namespace pmfml_cs.numl
             concDesc = new AtomicDescription((XmlElement)nodes.Item(0));
             timeDesc = new AtomicDescription((XmlElement)nodes.Item(1));
         }
+
+        public AtomicDescription getConcentrationDescription() { return concDesc; }
+        public AtomicDescription getTimeDescription() { return timeDesc; }
 
         // TODO: ToString
         // TODO: Equals
@@ -901,18 +655,22 @@ namespace pmfml_cs.numl
 
     public class UnitDefinitionNuMLNode
     {
-        public XmlElement element { get; }
+        private static string TRASNFORMATION_TAG = "pmf:transformation";
+        private static string ID_ATTR = "id";
+        private static string NAME_ATTR = "name";
+
+        XmlElement element;
 
         public UnitDefinitionNuMLNode(PMFUnitDefinition unitDefinition, XmlDocument doc)
         {
             element = doc.CreateElement(NuMLTags.UNIT_DEFINITION);
-            element.SetAttribute(NuMLTags.ID_ATTR, unitDefinition.getId());
-            element.SetAttribute(NuMLTags.NAME_ATTR, unitDefinition.getName());
+            element.SetAttribute(ID_ATTR, unitDefinition.getId());
+            element.SetAttribute(NAME_ATTR, unitDefinition.getName());
 
             // Adds transformation name
             if (unitDefinition.isSetTransformationName())
             {
-                XmlElement transformationNode = doc.CreateElement(NuMLTags.TRANSFORMATION);
+                XmlElement transformationNode = doc.CreateElement(TRASNFORMATION_TAG);
                 transformationNode.InnerText = unitDefinition.transformationName;
                 element.AppendChild(transformationNode);
             }
@@ -929,12 +687,12 @@ namespace pmfml_cs.numl
             this.element = element;
         }
 
-        public PMFUnitDefinition ToPMFUnitDefinition()
+        public PMFUnitDefinition toPMFUnitDefinition()
         {
-            string id = element.GetAttribute(NuMLTags.ID_ATTR);
-            string name = element.GetAttribute(NuMLTags.NAME_ATTR);
+            string id = element.GetAttribute(ID_ATTR);
+            string name = element.GetAttribute(NAME_ATTR);
 
-            XmlElement transformationNameNode = (XmlElement)element.SelectSingleNode(NuMLTags.TRANSFORMATION);
+            XmlElement transformationNameNode = (XmlElement)element.SelectSingleNode(TRASNFORMATION_TAG);
             string transformationName = transformationNameNode == null ? "" : transformationNameNode.InnerText;
 
             XmlNodeList unitNodes = element.GetElementsByTagName(NuMLTags.UNIT);
@@ -951,7 +709,7 @@ namespace pmfml_cs.numl
 
     class UnitNuMLNode
     {
-        public XmlElement element { get; }
+        XmlElement element;
 
         public UnitNuMLNode(Unit unit, XmlDocument doc)
         {
@@ -977,5 +735,6 @@ namespace pmfml_cs.numl
 
             return unit;
         }
+
     }
 }
