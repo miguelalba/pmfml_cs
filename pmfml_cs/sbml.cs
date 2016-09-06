@@ -47,6 +47,7 @@ namespace pmfml_cs.sbml
         public static string ENVIRONMENT = "environment";
         public static string TRANSFORMATION = "transformation";
         public static string PRIMARY_MODEL = "primaryModel";
+        public static string MODEL_QUALITY = "modelquality";
 
         // pmf tags
         public static string METADATA = "metadata";
@@ -56,6 +57,7 @@ namespace pmfml_cs.sbml
         public static string TYPE = "type";
         public static string RIGHTS = "rights";
         public static string SOURCE = "source";
+        public static string REFERENCE = "reference";
 
         // dcterms tags
         public static string CREATED = "created";
@@ -78,6 +80,21 @@ namespace pmfml_cs.sbml
         public static string RIS_WEBSITE = "UR";
         public static string RIS_TYPE = "M3";
         public static string RIS_COMMENT = "N1";
+
+        // uncertainty attributes
+        public static string UNCERTAINTY_ID = "id";
+        public static string UNCERTAINTY_NAME = "name";
+        public static string UNCERTAINTY_COMMENT = "comment";
+        public static string UNCERTAINTY_R2 = "r2";
+        public static string UNCERTAINTY_RMS = "rms";
+        public static string UNCERTAINTY_SSE = "sse";
+        public static string UNCERTAINTY_AIC = "aic";
+        public static string UNCERTAINTY_BIC = "bic";
+        public static string UNCERTAINTY_DOF = "dof";
+
+        // environment attributes
+        public static string ENVIRONMENT_NAME = "name";
+        public static string ENVIRONMENT_VALUE = "value";
     }
 
     public class CondIdNode
@@ -462,9 +479,9 @@ namespace pmfml_cs.sbml
             condId = new CondIdNode(annotation.getChild(SbmlTags.COND_ID)).getCondId();
 
             // Gets model quality annotation
-            if (annotation.hasChild(UncertaintyNode.TAG))
+            if (annotation.hasChild(SbmlTags.MODEL_QUALITY))
             {
-                XMLNode modelQualityNode = annotation.getChild(UncertaintyNode.TAG);
+                XMLNode modelQualityNode = annotation.getChild(SbmlTags.MODEL_QUALITY);
                 uncertainties = new UncertaintyNode(modelQualityNode).getMeasures();
             }
 
@@ -473,7 +490,7 @@ namespace pmfml_cs.sbml
             for (int i = 0; i < annotation.getNumChildren(); i++)
             {
                 XMLNode currentNode = annotation.getChild(i);
-                if (currentNode.getName().Equals(ReferenceSBMLNode.TAG))
+                if (currentNode.getName().Equals(SbmlTags.REFERENCE))
                 {
                     references.Add(new ReferenceSBMLNode(currentNode).toReference());
                 }
@@ -487,7 +504,7 @@ namespace pmfml_cs.sbml
             annotation = new XMLNode(triple);
 
             // Build uncertainties node
-            annotation.addChild(new UncertaintyNode(uncertainties).getNode());
+            annotation.addChild(new UncertaintyNode(uncertainties).node);
 
             // Builds references nodes
             foreach (Reference reference in references)
@@ -529,9 +546,9 @@ namespace pmfml_cs.sbml
                 annotation.getChild(SbmlTags.GLOBAL_MODEL_ID)).getGlobalModelId();
 
             // Gets model quality annotation
-            if (annotation.hasChild(UncertaintyNode.TAG))
+            if (annotation.hasChild(SbmlTags.MODEL_QUALITY))
             {
-                XMLNode qualityNode = annotation.getChild(UncertaintyNode.TAG);
+                XMLNode qualityNode = annotation.getChild(SbmlTags.MODEL_QUALITY);
                 uncertainties = new UncertaintyNode(qualityNode).getMeasures();
             }
 
@@ -540,7 +557,7 @@ namespace pmfml_cs.sbml
             for (int i = 0; i < annotation.getNumChildren(); i++)
             {
                 XMLNode currentNode = annotation.getChild(i);
-                if (currentNode.getName().Equals(ReferenceSBMLNode.TAG))
+                if (currentNode.getName().Equals(SbmlTags.REFERENCE))
                 {
                     ReferenceSBMLNode refNode = new ReferenceSBMLNode(currentNode);
                     references.Add(refNode.toReference());
@@ -561,7 +578,7 @@ namespace pmfml_cs.sbml
             annotation.addChild(new GlobalModelIdNode(globalModelID).node);
 
             // Builds UncertaintyNode
-            annotation.addChild(new UncertaintyNode(uncertainties).getNode());
+            annotation.addChild(new UncertaintyNode(uncertainties).node);
 
             // Builds reference nodes
             foreach (Reference reference in references)
@@ -667,7 +684,7 @@ namespace pmfml_cs.sbml
             for (int i = 0; i < annotation.getNumChildren(); i++)
             {
                 XMLNode currentNode = annotation.getChild(i);
-                if (currentNode.getName().Equals(ReferenceSBMLNode.TAG))
+                if (currentNode.getName().Equals(SbmlTags.REFERENCE))
                 {
                     references.Add(new ReferenceSBMLNode(currentNode).toReference());
                 }
@@ -919,9 +936,6 @@ namespace pmfml_cs.sbml
         private const int LEVEL = 3;
         private const int VERSION = 1;
 
-        private const string ATTRIBUTE_NAME = "name";
-        private const string ATTRIBUTE_VALUE = "value";
-
         public Compartment compartment { get; }
         public string pmfCode { get; set; }
         public string detail { get; set; }
@@ -957,9 +971,9 @@ namespace pmfml_cs.sbml
                     if (currentNode.getName().Equals(SbmlTags.ENVIRONMENT))
                     {
                         XMLAttributes attrs = currentNode.getAttributes();
-                        string name = attrs.getValue(ATTRIBUTE_NAME);
-                        double value = attrs.hasAttribute(ATTRIBUTE_VALUE)
-                            ? double.Parse(attrs.getValue(ATTRIBUTE_VALUE)) : double.NaN;
+                        string name = attrs.getValue(SbmlTags.ENVIRONMENT_NAME);
+                        double value = attrs.hasAttribute(SbmlTags.ENVIRONMENT_VALUE)
+                            ? double.Parse(attrs.getValue(SbmlTags.ENVIRONMENT_VALUE)) : double.NaN;
                         ModelVariable mv = new ModelVariable(name, value);
                         modelVariables.Add(mv);
                     }
@@ -1004,10 +1018,10 @@ namespace pmfml_cs.sbml
                 foreach (ModelVariable mv in modelVariables)
                 {
                     XMLAttributes attrs = new XMLAttributes();
-                    attrs.add(ATTRIBUTE_NAME, mv.name);
+                    attrs.add(SbmlTags.ENVIRONMENT_NAME, mv.name);
                     if (!double.IsNaN(mv.value))
                     {
-                        attrs.add(ATTRIBUTE_VALUE, mv.value.ToString());
+                        attrs.add(SbmlTags.ENVIRONMENT_VALUE, mv.value.ToString());
                     }
 
                     annot.addChild(new XMLNode(varTriple, attrs));
@@ -1298,7 +1312,7 @@ namespace pmfml_cs.sbml
     public class Reference
     {
         public string author { get; set; }
-        public int year { get; set; }
+        public int? year { get; set; }
         public string title { get; set; }
         public string abstractText { get; set; }
         public string journal { get; set; }
@@ -1326,9 +1340,6 @@ namespace pmfml_cs.sbml
 
     public class ReferenceSBMLNode
     {
-        public const string NS = "dc";
-        public const string TAG = "reference";
-
         public XMLNode node { get; }
 
         public ReferenceSBMLNode(Reference reference)
@@ -1336,7 +1347,7 @@ namespace pmfml_cs.sbml
             // Reference container
             XMLNamespaces namespaces = new XMLNamespaces();
             namespaces.add("http://foo.bar.com", "ref");
-            XMLTriple refTriple = new XMLTriple(TAG, "", NS);
+            XMLTriple refTriple = new XMLTriple(SbmlTags.REFERENCE, "", SbmlTags.PMF_NS);
             XMLNode refNode = new XMLNode(refTriple, null, namespaces);
 
             // author node
@@ -1344,6 +1355,14 @@ namespace pmfml_cs.sbml
             {
                 XMLTriple triple = new XMLTriple(SbmlTags.RIS_AUTHOR, "", "ref");
                 XMLNode node = new XMLNode(reference.author);
+                refNode.addChild(node);
+            }
+
+            // year node
+            if (reference.year.HasValue)
+            {
+                XMLTriple triple = new XMLTriple(SbmlTags.RIS_YEAR, "", "ref");
+                XMLNode node = new XMLNode(reference.year.ToString());
                 refNode.addChild(node);
             }
 
@@ -1639,21 +1658,21 @@ namespace pmfml_cs.sbml
         // Same as with createReference
         public static Uncertainties createUncertainties()
         {
-            return new UncertaintiesImpl();
+            return new Uncertainties();
         }
     }
 
     public class SecDep
     {
-        Parameter param;
-        String desc;
+        public Parameter param { get; }
+        public String desc { get; }
 
         public SecDep(Parameter param)
         {
             // If param has annotation, process it
             if (param.isSetAnnotation())
             {
-                desc = new SecDepAnnotation(param.getAnnotation()).getDesc();
+                desc = new SecDepAnnotation(param.getAnnotation()).desc;
             }
             // Copies parameter
             this.param = param;
@@ -1668,7 +1687,7 @@ namespace pmfml_cs.sbml
 
             if (!string.IsNullOrEmpty(desc))
             {
-                param.setAnnotation(new SecDepAnnotation(desc).getAnnotation());
+                param.setAnnotation(new SecDepAnnotation(desc).annotation);
             }
 
             if (!string.IsNullOrEmpty(unit))
@@ -1676,28 +1695,15 @@ namespace pmfml_cs.sbml
                 param.setUnits(PMFUtil.createId(unit));
             }
         }
-
-        public Parameter getParam()
-        {
-            return param;
-        }
-
-        public string getDescription()
-        {
-            return desc;
-        }
     }
 
     class SecDepAnnotation
     {
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
-
         private const string DESC_NS = "pmf";
         private const string DESC_TAG = "description";
 
-        XMLNode annotation;
-        String desc;
+        public XMLNode annotation { get; }
+        public string desc { get; }
 
         public SecDepAnnotation(XMLNode annotation)
         {
@@ -1715,27 +1721,23 @@ namespace pmfml_cs.sbml
             descNode.addChild(new XMLNode(desc));
 
             // Creates annotation
-            XMLTriple annoTriple = new XMLTriple(METADATA_TAG, "", METADATA_NS);
+            XMLTriple annoTriple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS);
             annotation = new XMLNode(annoTriple);
 
             // Copies description
             this.desc = desc;
         }
-
-        public XMLNode getAnnotation() { return annotation; }
-        public string getDesc() { return desc; }
     }
 
     public class SecIndep
     {
-
-        Parameter param;
-        string desc;
+        public Parameter param { get; }
+        public string desc { get; }
 
         public SecIndep(Parameter param)
         {
             if (param.isSetAnnotation())
-                desc = new SecIndepAnnotation(param.getAnnotation()).getDesc();
+                desc = new SecIndepAnnotation(param.getAnnotation()).desc;
         }
 
         public SecIndep(string name, string desc, string unit)
@@ -1746,7 +1748,7 @@ namespace pmfml_cs.sbml
             param.setValue(0.0);
 
             if (!string.IsNullOrEmpty(desc))
-                param.setAnnotation(new SecIndepAnnotation(desc).getAnnotation());
+                param.setAnnotation(new SecIndepAnnotation(desc).annotation);
 
             if (string.IsNullOrEmpty(unit))
             {
@@ -1757,27 +1759,21 @@ namespace pmfml_cs.sbml
                 param.setUnits(PMFUtil.createId(unit));
             }
         }
-
-        public Parameter getParam() { return param; }
-        public string getDescription() { return desc; }
     }
 
     class SecIndepAnnotation
     {
-        private const string METADATA_NS = "pmf";
-        private const string METADATA_TAG = "metadata";
-
         private const string DESC_NS = "pmf";
         private const string DESC_TAG = "description";
 
-        XMLNode annotation;
-        string desc;
+        public XMLNode annotation { get; }
+        public string desc { get; }
 
         public SecIndepAnnotation(XMLNode annotation)
         {
             this.annotation = annotation;
 
-            XMLNode descNode = annotation.getChild(METADATA_TAG);
+            XMLNode descNode = annotation.getChild(SbmlTags.METADATA);
             desc = descNode.getChild(0).getCharacters();
         }
 
@@ -1789,123 +1785,30 @@ namespace pmfml_cs.sbml
             descNode.addChild(new XMLNode(desc));
 
             // Creates annotation
-            XMLTriple annoTriple = new XMLTriple(METADATA_TAG, "", METADATA_NS);
+            XMLTriple annoTriple = new XMLTriple(SbmlTags.METADATA, "", SbmlTags.PMF_NS);
             annotation = new XMLNode(annoTriple);
 
             // Copies description
             this.desc = desc;
         }
-
-        public XMLNode getAnnotation() { return annotation; }
-        public string getDesc() { return desc; }
     }
 
-    public interface Uncertainties
+    public class Uncertainties
     {
-        int getId();
-        void setId(int id);
-        bool isSetId();
-
-        string getModelName();
-        void setModelName(string name);
-        bool isSetModelName();
-
-        string getComment();
-        void setComment(string comment);
-        bool isSetComment();
-
-        double getR2();
-        void setR2(double r2);
-        bool isSetR2();
-
-        double getRMS();
-        void setRMS(double rms);
-        bool isSetRMS();
-
-        double getSSE();
-        void setSSE(double sse);
-        bool isSetSSE();
-
-        double getAIC();
-        void setAIC(double aic);
-        bool isSetAIC();
-
-        double getBIC();
-        void setBIC(double bic);
-        bool isSetBIC();
-
-        int getDOF();
-        void setDOF(int dof);
-        bool isSetDOF();
-    }
-
-    public class UncertaintiesImpl : Uncertainties
-    {
-        private const string ID = "id";
-        private const string MODEL_NAME = "modelName";
-        private const string COMMENT = "comment";
-        private const string R2 = "r2";
-        private const string RMS = "rms";
-        private const string SSE = "sse";
-        private const string AIC = "aic";
-        private const string BIC = "bic";
-        private const string DOF = "dof";
-
-        private Hashtable ht = new Hashtable();
-
-        public int getId() { return (int)ht[ID]; }
-        public void setId(int id) { ht[ID] = id; }
-        public bool isSetId() { return ht.ContainsKey(ID); }
-
-        public string getModelName() { return (string)ht[MODEL_NAME]; }
-        public void setModelName(string name) { ht[MODEL_NAME] = name; }
-        public bool isSetModelName() { return ht.ContainsKey(MODEL_NAME); }
-
-        public string getComment() { return (string)ht[COMMENT]; }
-        public void setComment(string comment) { ht[COMMENT] = comment; }
-        public bool isSetComment() { return ht.ContainsKey(COMMENT); }
-
-        public double getR2() { return (double)ht[R2]; }
-        public void setR2(double r2) { ht[R2] = r2; }
-        public bool isSetR2() { return ht.ContainsKey(R2); }
-
-        public double getRMS() { return (double)ht[RMS]; }
-        public void setRMS(double rms) { ht[RMS] = rms; }
-        public bool isSetRMS() { return ht.ContainsKey(RMS); }
-
-        public double getSSE() { return (double)ht[SSE]; }
-        public void setSSE(double sse) { ht[SSE] = sse; }
-        public bool isSetSSE() { return ht.ContainsKey(SSE); }
-
-        public double getAIC() { return (double)ht[AIC]; }
-        public void setAIC(double aic) { ht[AIC] = aic; }
-        public bool isSetAIC() { return ht.ContainsKey(AIC); }
-
-        public double getBIC() { return (double)ht[BIC]; }
-        public void setBIC(double bic) { ht[BIC] = bic; }
-        public bool isSetBIC() { return ht.ContainsKey(BIC); }
-
-        public int getDOF() { return (int)ht[DOF]; }
-        public void setDOF(int dof) { ht[DOF] = dof; }
-        public bool isSetDOF() { return ht.ContainsKey(DOF); }
+        public int? id { get; set; }
+        public string modelName { get; set; }
+        public string comment { get; set; }
+        public double r2 { get; set; }
+        public double rms { get; set; }
+        public double sse { get; set; }
+        public double aic { get; set; }
+        public double bic { get; set; }
+        public int? dof { get; set; }
     }
 
     public class UncertaintyNode
     {
-        public const string TAG = "modelquality";
-        public const string NS = "pmmlab";
-
-        public const string ID = "id";
-        public const string NAME = "name";
-        public const string COMMENT = "comment";
-        public const string R2 = "r2";
-        public const string RMS = "rms";
-        public const string SSE = "sse";
-        public const string AIC = "aic";
-        public const string BIC = "bic";
-        public const string DOF = "dof";
-
-        private XMLNode node;
+        public XMLNode node { get; }
 
         public UncertaintyNode(XMLNode node)
         {
@@ -1915,90 +1818,79 @@ namespace pmfml_cs.sbml
         public UncertaintyNode(Uncertainties uncertainties)
         {
             XMLAttributes attrs = new XMLAttributes();
-            if (uncertainties.isSetId())
-                attrs.add(ID, uncertainties.getId().ToString());
-            if (uncertainties.isSetModelName())
-                attrs.add(NAME, uncertainties.getModelName());
-            if (uncertainties.isSetComment())
-                attrs.add(COMMENT, uncertainties.getComment());
-            if (uncertainties.isSetR2())
-                attrs.add(R2, uncertainties.getR2().ToString());
-            if (uncertainties.isSetRMS())
-                attrs.add(RMS, uncertainties.getRMS().ToString());
-            if (uncertainties.isSetSSE())
-                attrs.add(SSE, uncertainties.getSSE().ToString());
-            if (uncertainties.isSetAIC())
-                attrs.add(AIC, uncertainties.getAIC().ToString());
-            if (uncertainties.isSetBIC())
-                attrs.add(BIC, uncertainties.getBIC().ToString());
-            if (uncertainties.isSetDOF())
-                attrs.add(DOF, uncertainties.getDOF().ToString());
+            if (uncertainties.id.HasValue)
+                attrs.add(SbmlTags.UNCERTAINTY_ID, uncertainties.id.ToString());
+            if (!string.IsNullOrEmpty(uncertainties.modelName))
+                attrs.add(SbmlTags.UNCERTAINTY_NAME, uncertainties.modelName);
+            if (!string.IsNullOrEmpty(uncertainties.comment))
+                attrs.add(SbmlTags.UNCERTAINTY_COMMENT, uncertainties.comment);
+            if (!double.IsNaN(uncertainties.r2))
+                attrs.add(SbmlTags.UNCERTAINTY_R2, uncertainties.r2.ToString());
+            if (!double.IsNaN(uncertainties.rms))
+                attrs.add(SbmlTags.UNCERTAINTY_RMS, uncertainties.rms.ToString());
+            if (!double.IsNaN(uncertainties.sse))
+                attrs.add(SbmlTags.UNCERTAINTY_SSE, uncertainties.sse.ToString());
+            if (!double.IsNaN(uncertainties.aic))
+                attrs.add(SbmlTags.UNCERTAINTY_AIC, uncertainties.aic.ToString());
+            if (!double.IsNaN(uncertainties.bic))
+                attrs.add(SbmlTags.UNCERTAINTY_BIC, uncertainties.bic.ToString());
+            if (uncertainties.dof.HasValue)
+                attrs.add(SbmlTags.UNCERTAINTY_DOF, uncertainties.dof.ToString());
 
-            node = new XMLNode(new XMLTriple(TAG, "", NS), attrs);
+            node = new XMLNode(new XMLTriple(SbmlTags.MODEL_QUALITY, "", SbmlTags.PMMLAB_NS), attrs);
         }
 
         public Uncertainties getMeasures()
         {
             XMLAttributes attrs = node.getAttributes();
 
-            Uncertainties uncert = new UncertaintiesImpl();
-            if (attrs.hasAttribute(ID))
+            Uncertainties uncert = new Uncertainties();
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_ID))
             {
-                string attr = attrs.getValue(ID);
-                uncert.setId(int.Parse(attr));
+                uncert.id = int.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_ID));
             }
 
-            if (attrs.hasAttribute(NAME))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_NAME))
             {
-                string attr = attrs.getValue(NAME);
-                uncert.setModelName(attr);
+                uncert.modelName = attrs.getValue(SbmlTags.UNCERTAINTY_NAME);
             }
 
-            if (attrs.hasAttribute(COMMENT))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_COMMENT))
             {
-                string attr = attrs.getValue(COMMENT);
-                uncert.setComment(attr);
+                uncert.comment = attrs.getValue(SbmlTags.UNCERTAINTY_COMMENT);
             }
 
-            if (attrs.hasAttribute(R2))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_R2))
             {
-                string attr = attrs.getValue(R2);
-                uncert.setR2(double.Parse(attr));
+                uncert.r2 = double.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_R2));
             }
 
-            if (attrs.hasAttribute(RMS))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_RMS))
             {
-                string attr = attrs.getValue(RMS);
-                uncert.setRMS(double.Parse(attr));
+                uncert.rms = double.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_RMS));
             }
 
-            if (attrs.hasAttribute(SSE))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_SSE))
             {
-                string attr = attrs.getValue(SSE);
-                uncert.setSSE(double.Parse(attr));
+                uncert.sse = double.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_SSE));
             }
 
-            if (attrs.hasAttribute(AIC))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_AIC))
             {
-                string attr = attrs.getValue(AIC);
-                uncert.setAIC(double.Parse(attr));
+                uncert.aic = double.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_AIC));
             }
 
-            if (attrs.hasAttribute(BIC))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_BIC))
             {
-                string attr = attrs.getValue(BIC);
-                uncert.setBIC(double.Parse(attr));
+                uncert.bic = double.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_BIC));
             }
 
-            if (attrs.hasAttribute(DOF))
+            if (attrs.hasAttribute(SbmlTags.UNCERTAINTY_DOF))
             {
-                string attr = attrs.getValue(DOF);
-                uncert.setDOF(int.Parse(attr));
+                uncert.dof = int.Parse(attrs.getValue(SbmlTags.UNCERTAINTY_DOF));
             }
 
             return uncert;
         }
-
-        public XMLNode getNode() { return node; }
     }
 }
