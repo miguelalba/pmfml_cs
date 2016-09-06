@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Allgemeine Informationen über eine Assembly werden über die folgenden 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die einer Assembly zugeordnet sind.
-[assembly: AssemblyTitle("pmfml-cs")]
+[assembly: AssemblyTitle("pmfml_cs")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("BfR")]
-[assembly: AssemblyProduct("pmfml-cs")]
+[assembly: AssemblyProduct("pmfml_cs")]
 [assembly: AssemblyCopyright("Copyright © BfR 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Die folgende GUID bestimmt die ID der Typbibliothek, wenn dieses Projekt für COM verfügbar gemacht wird
-[assembly: Guid("6d9b7105-fe08-4d91-9ef8-a90e0ed9c14c")]
+[assembly: Guid("7ca5162e-b191-405d-8ff2-f8d8be983df4")]
 
 // Versionsinformationen für eine Assembly bestehen aus den folgenden vier Werten:
 //
