@@ -30,6 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>resources\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="LibCombine">
+      <HintPath>resources\LibCombine.dll</HintPath>
+    </Reference>
     <Reference Include="libsbmlcsP, Version=5.13.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\libsbmlcsP.dll</HintPath>
@@ -44,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="file.cs" />
     <Compile Include="model.cs" />
     <Compile Include="numl.cs" />
     <Compile Include="pmfml.cs" />

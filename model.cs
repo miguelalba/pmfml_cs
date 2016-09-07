@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using libsbmlcs;
+using pmfml_cs.numl;
 
 namespace pmfml_cs.model
 {
