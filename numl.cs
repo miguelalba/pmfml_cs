@@ -15,6 +15,7 @@
  * Contributors: Department Biological Safety - BfR
  **************************************************************************************************/
 using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 
 using libsbmlcs;
@@ -292,6 +293,93 @@ namespace pmfml_cs.numl
             }
 
             return SBMLFactory.createPMFCompartment(id, name, pmfCode, detail, modelVariables);
+        }
+    }
+
+    public class NuMLDocument
+    {
+        private static string NUML_NAMESPACE = "http://www.numl.org/numl/level1/version1";
+        private static int VERSION = 1;
+        private static int LEVEL = 1;
+
+        static string ELEMENT_NAME = "numl";
+
+        public ConcentrationOntology concOntology { get; }
+        public TimeOntology timeOntology { get; }
+        public ResultComponent resultComponent { get; }
+
+        public NuMLDocument(ConcentrationOntology concOntology, TimeOntology timeOntology,
+            ResultComponent resultComponent)
+        {
+            this.concOntology = concOntology;
+            this.timeOntology = timeOntology;
+            this.resultComponent = resultComponent;
+        }
+
+        public NuMLDocument(XmlElement element)
+        {
+            // Gets concentration and time ontologies
+            concOntology = new ConcentrationOntology((XmlElement)element.ChildNodes[0]);
+            timeOntology = new TimeOntology((XmlElement)element.ChildNodes[1]);
+
+            // Gets the result component
+            XmlElement rcElement = (XmlElement)element.SelectSingleNode(NuMLTags.RESULT_COMPONENT);
+            resultComponent = new ResultComponent(rcElement);
+        }
+
+        public XmlElement ToNode(XmlDocument doc)
+        {
+            XmlElement element = doc.CreateElement(ELEMENT_NAME, NUML_NAMESPACE);
+            element.SetAttribute("version", VERSION.ToString());
+            element.SetAttribute("level", LEVEL.ToString());
+            element.SetAttribute("xmlns:pmf",
+                "http://sourceforge.net/projects/microbialmodelingexchange/files/PMF-ML");
+            element.SetAttribute("xmlns:sbml", "http://www.sbml.org/sbml/level3/version1/core");
+            element.SetAttribute("xmlns:dc", "http://purl.org/dc/elements/1.1/");
+            element.SetAttribute("xmlns:dcterms", "http://purl.org/dc/terms/");
+            element.SetAttribute("xmlns:pmmlab",
+                "http://sourceforge.net/projects/microbialmodelingexchange/files/PMF-ML");
+
+            element.AppendChild(concOntology.ToNode(doc));
+            element.AppendChild(timeOntology.toNode(doc));
+            element.AppendChild(resultComponent.ToNode(doc));
+
+            return element;
+        }
+    }
+
+    public class NuMLReader
+    {
+        public static NuMLDocument read(Stream inStream)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(inStream);
+
+            return new NuMLDocument(doc.DocumentElement);
+        }
+
+        public static NuMLDocument read(string filename)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.Load(filename);
+
+            return new NuMLDocument(doc.DocumentElement);
+        }
+    }
+
+    public class NuMLWriter
+    {
+        public static void write(NuMLDocument doc, string filename)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            doc.ToNode(xmlDoc);
+
+            XmlWriterSettings settings = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "  "
+            };
+            xmlDoc.Save(XmlWriter.Create(filename, settings));
         }
     }
 
